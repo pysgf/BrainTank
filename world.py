@@ -24,22 +24,42 @@ import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
 import os, random
-import os.path as op
+from tank import Tank
 
 class World:
+    '''Generates, draws, and provides info about game worlds.'''
+
     def __init__(self, width, height, seed=None):
         self.width = width
         self.height = height
         self.rand = random.Random()
         self.rand.seed(seed)
         
+        self.game_over = False
+        
         self.load_resources()
         self.generate_map()
         
+    def get_tile(self, x, y):
+        '''Returns a (tile, item) tuple.
+           tile will be a type:
+               world.grass, dirt, etc
+           item will be None or an item:
+               world.rock, tree, etc
+           '''
+        if not(x >= 0 and x < self.width):
+            raise IndexError('get_tile out of bounds for x=%d' % x)
+           
+        if not(y >= 0 and y < self.height):
+            raise IndexError('get_tile out of bounds for y=%d' % y)
+        
+        return self.__map[y][x]
+        
     def load_resources(self):
-        pack = "PlanetCute PNG"
+
         def load(name):
-            return pyglet.image.load(op.join(pack, '%s.png' % name))
+            pack = "PlanetCute PNG"
+            return pyglet.resource.image('%s/%s.png' % (pack, name))
             
         self.grass = load('Grass Block')
         self.dirt = load('Dirt Block')
@@ -75,7 +95,7 @@ class World:
             return [i for sublist in [[x]*y for x,y in pairs] for i in sublist]
         
         # spawn lists
-        terrain = distmap(((self.grass, 20), (self.dirt, 5), (self.wall, 2), (self.water, 1)))
+        terrain = distmap(((self.grass, 20), (self.dirt, 5), (self.wall, 0), (self.water, 1)))
         items = distmap(((None, 20), (self.rock,3), (self.tree,3)))
 
         # generate actual map
@@ -90,24 +110,92 @@ class World:
                 row[i] = (tile, item)
                 
         # clear spawn points
-        self.__map[0][0] = (self.plain, self.spawn)
-        self.__map[self.height-1][self.width-1] = (self.plain, self.spawn)
+        s1 = (0, 0)
+        s2 = (self.width-1, self.height-1)
+        if r.randint(0,1):
+            s1, s2 = s2, s1
+        
+        offset_delta = (self.adjacent_stack, self.adjacent_side)
+        self.red_tank = Tank(s1[0], s1[1], 'red', offset_delta)
+        self.blue_tank = Tank(s2[0], s2[1], 'blue', offset_delta)
+        
+        self.__set_tile(s1, (self.plain, self.red_tank))
+        self.__set_tile(s2, (self.plain, self.blue_tank))
+        
+        if s1[0] == 0:
+            self.red_tank.facing = Tank.RIGHT
+            self.blue_tank.facing = Tank.LEFT
+        else:
+            self.blue_tank.facing = Tank.RIGHT
+            self.red_tank.facing = Tank.LEFT
+        
+    def __set_tile(self, pos, data):
+        print "setting", pos, data
+        self.__map[pos[1]][pos[0]] = data
         
     def draw(self):
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glEnable(gl.GL_DEPTH_TEST)
+        gl.glDepthFunc(gl.GL_LEQUAL)
         
         dx = self.adjacent_side
         dy = self.adjacent_stack
         stacked = self.half_stack
         
+        # terrain pass
         x, y = self.start_x, self.start_y
         for row in self.__map:
             x = self.start_x
             for tile,item in row:
-                tile.blit(x,y)
-                if item is not None:
-                    item.blit(x,y+stacked)
+                tile.blit(x,y,0)
                 x += dx
             y += dy
+            
+        # item pass
+        x, y = self.start_x, self.start_y
+        for row in self.__map:
+            x = self.start_x
+            for tile,item in row:
+                if item is not None:
+                    item.blit(x,y+stacked,1)
+                x += dx
+            y += dy
+
+    def warp(self, tank):
+        '''Called before tank sets x,y to new tile.'''
+        pos = tank.get_position()
+        wpos = tank.get_warp_destination()
+        
+        src = self.get_tile(pos[0], pos[1])
+        dst = self.get_tile(wpos[0], wpos[1])
+        if dst[0] not in self.safe and tank.brain:
+            tank.brain.kill()
+            return
+            
+        self.__set_tile(pos, (src[0], None))
+        self.__set_tile(wpos, (dst[0], tank))
+        
                 
+    def update(self, dt):
+        if not self.game_over:
+            tanks = [self.red_tank, self.blue_tank]
+            self.rand.shuffle(tanks)
+
+            # bad tanks will try to escape the game board, capture them
+            try:
+                tanks[0].update(dt)
+            except:
+                tanks[0].kill()
+                
+            try:
+                tanks[1].update(dt)
+            except:
+                tanks[1].kill()
+
+    def detonate(self, thing):
+        if thing in (self.red_tank, self.blue_tank):
+            self.game_over = True
+            
+        # TODO: set up explosion
+        

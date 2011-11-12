@@ -28,14 +28,16 @@ import os
 from world import World
 
 class Game(pyglet.window.Window):
-    def __init__(self):
+    def __init__(self, brain1, brain2):
         config = pyglet.gl.Config(buffer_size=32, 
                                   alpha_size=8, 
                                   double_buffer=True)
         super(Game, self).__init__(width=1024, height=768,
                                    config=config, resizable=True)
        
-        self.create_world()
+        self.world = World(10, 8)
+        self.brain1 = brain1(self.world, self.world.red_tank)
+        self.brain2 = brain2(self.world, self.world.blue_tank)
         
         pyglet.clock.schedule_interval(self.update_closure(), 1.0/60.0)
         
@@ -49,13 +51,22 @@ class Game(pyglet.window.Window):
         self.keys = key.KeyStateHandler()
         self.push_handlers(self.keys)
 
-        
-    def create_world(self):
-        self.world = World(10, 8)
-       
     def update_closure(self):
         def update(dt):
-            pass
+            try:
+                if not self.brain1.tank.is_busy():
+                    self.brain1.take_turn()
+            except:
+                self.brain1.kill()
+                
+            try:
+                if not self.brain2.tank.is_busy():
+                    self.brain2.take_turn()
+            except:
+                self.brain2.kill()
+                
+            self.world.update(dt)
+                
         return update
  
     def on_draw(self):
@@ -67,6 +78,7 @@ class Game(pyglet.window.Window):
         
 
 if __name__ == '__main__':
-    Game()
+    from brain import DumbBrain
+    Game(DumbBrain, DumbBrain)
     pyglet.clock.set_fps_limit(60)
     pyglet.app.run()
