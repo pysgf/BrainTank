@@ -1,3 +1,7 @@
+Requirements:
+Python 2.7+ http://www.python.org/
+Pyglet: http://pyglet.org/
+
 The code is GPLv3, but the art is not.
 
 Attribution:
