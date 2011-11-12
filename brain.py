@@ -20,51 +20,96 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+import tank
+from tank import *
+
 class Brain:
-    '''The Brain is your primary interface to write an AI'''
+    '''The Brain is your primary interface to write a custom tank AI.'''
+    
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
+    FORWARD = 4
+    BACKWARD = 5
+    SHOOT = 6
+    
     
     def __init__(self, world, tank):
         self.world = world
         self.tank = tank
         self.tank.brain = self
         
+        self.memory = []
+        
+    def forget(self):
+        '''Forget (clear) saved command queue'''
+        self.memory = []
+        
+    def pop(self):
+        '''Return and remove the first command in the queue.'''        
+        if len(self.memory):        
+            return self.memory.pop(0)
+        else:
+            return None
+        
     def face_up(self):
-        self.tank.facing = Tank.UP
+        '''Queue the command to change facing to up.'''
+        self.memory.append(self.UP)
         
     def face_down(self):
-        self.tank.facing = Tank.DOWN
+        '''Queue the command to change facing to down.'''
+        self.memory.append(self.DOWN)
         
     def face_left(self):
-        self.tank.facing = Tank.LEFT
+        '''Queue the command to change facing to the left.'''
+        self.memory.append(self.LEFT)
         
     def face_right(self):
-        self.tank.facing = Tank.RIGHT
+        '''Queue the command to change facing to the right.'''
+        self.memory.append(self.RIGHT)
         
     def move_forward(self):
-        self.tank.move = 1
+        '''Queue the command to move the tank forward.
+           The direction depends on the tank's current facing.'''
+        self.memory.append(self.FORWARD)
         
     def move_backward(self):
-        self.tank.move = -1
+        '''Queue the command to move the tank backward.
+           The direction depends on the tank's current facing.'''
+        self.memory.append(self.BACKWARD)
         
     def shoot(self):
-        self.tank.fire = 1
+        '''Queue a shoot command.
+           The direction depends on the tank's current facing.'''
+        self.memory.append(self.SHOOT)
         
     def position(self):
+        '''Return the (x,y) coordinate of the tank.'''
         return self.tank.get_position()
         
+    def facing(self):
+        '''Return the facing of the tank.
+           It returns Facing.UP, Facing.DOWN, etc.'''
+        return self.tank.facing.value
+        
     def radar(self, x, y):
-        try:
-            return self.world.get_tile(x, y)
-        except IndexError:
-            return (None, None)
+        '''Return the tile information for a given coordinate.
+           Returns (terrain, item). If no terrain or item, it uses None.
+           See the World docs for some terrain types.'''
+        return self.world.get_tile(x, y)
        
     def kill(self):
+        '''Destroys the tank.'''
         self.tank.kill()
         
-    def take_turn(self):
+    def think(self):
+        '''Implement this in your custom brain. 
+           It is only called if the tank has no commands.'''
         pass
         
+        
 class DumbBrain(Brain):
-    def take_turn(self):
+    def think(self):
         x,y = self.position()
         self.move_forward()

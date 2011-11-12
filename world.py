@@ -24,7 +24,10 @@ import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
 import os, random
-from tank import Tank
+from tank import Tank, Facing
+
+class VoidKill(Exception):
+    pass
 
 class World:
     '''Generates, draws, and provides info about game worlds.'''
@@ -48,10 +51,10 @@ class World:
                world.rock, tree, etc
            '''
         if not(x >= 0 and x < self.width):
-            raise IndexError('get_tile out of bounds for x=%d' % x)
+            return (None, None)
            
         if not(y >= 0 and y < self.height):
-            raise IndexError('get_tile out of bounds for y=%d' % y)
+            return (None, None)
         
         return self.__map[y][x]
         
@@ -110,24 +113,17 @@ class World:
                 row[i] = (tile, item)
                 
         # clear spawn points
-        s1 = (0, 0)
-        s2 = (self.width-1, self.height-1)
+        s1 = (0, 0, Facing.RIGHT)
+        s2 = (self.width-1, self.height-1, Facing.LEFT)
         if r.randint(0,1):
             s1, s2 = s2, s1
         
-        offset_delta = (self.adjacent_stack, self.adjacent_side)
-        self.red_tank = Tank(s1[0], s1[1], 'red', offset_delta)
-        self.blue_tank = Tank(s2[0], s2[1], 'blue', offset_delta)
+        tile_offset = (self.adjacent_stack, self.adjacent_side)
+        self.red_tank = Tank(s1[0], s1[1], s1[2], 'red', tile_offset)
+        self.blue_tank = Tank(s2[0], s2[1], s2[2], 'blue', tile_offset)
         
         self.__set_tile(s1, (self.plain, self.red_tank))
         self.__set_tile(s2, (self.plain, self.blue_tank))
-        
-        if s1[0] == 0:
-            self.red_tank.facing = Tank.RIGHT
-            self.blue_tank.facing = Tank.LEFT
-        else:
-            self.blue_tank.facing = Tank.RIGHT
-            self.red_tank.facing = Tank.LEFT
         
     def __set_tile(self, pos, data):
         print "setting", pos, data
@@ -185,12 +181,12 @@ class World:
             # bad tanks will try to escape the game board, capture them
             try:
                 tanks[0].update(dt)
-            except:
+            except VoidKill:
                 tanks[0].kill()
                 
             try:
                 tanks[1].update(dt)
-            except:
+            except VoidKill:
                 tanks[1].kill()
 
     def detonate(self, thing):

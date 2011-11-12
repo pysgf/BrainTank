@@ -25,25 +25,57 @@ import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
 import os, random
+from animation import Animation
+from brain import Brain
 
-class Tank:
-    '''Draws and handles tank actions.'''
-
+class Facing:
+    '''Handles 4 way facing and conversion to vectors'''
+    
     UP = 0
     DOWN = 1
     LEFT = 2
     RIGHT = 3
+
+    def __init__(self, facing=0):
+        self.value = facing
+        
+    def to_vector(self):
+        if self.value == self.UP:
+            return (0,1)
+        if self.value == self.DOWN:
+            return (0,-1)
+        if self.value == self.LEFT:
+            return (-1,0)            
+        if self.value == self.RIGHT:
+            return (1,0)
+
+            
+class Tank:
+    '''Draws and handles tank actions.'''
+
+    IDLE = 0
+    MOVING = 1
+    SHOOTING = 2
+    DEAD = 3
     
-    def __init__(self, x, y, color, offset_delta, facing=0):
+    def __init__(self, x, y, facing, color, tile_offset):
         self.__set_position(x,y)
+        self.facing = Facing(facing)
         self.color = color
-        self.facing = facing
-        self.fire = 0
-        self.move = 0
+
+        self.velocity = 0
+        
+        self.offset_dt = (0,0)
         self.offset = (0,0)
-        self.offset_delta = offset_delta
-        self.target = None
+        self.tile_offset = tile_offset
+        
+        self.state = self.IDLE
+        self.animation = None
         self.brain = None
+        
+        # speed is per second
+        self.speed = 100 
+        self.reduced_speed = self.speed *0.5
         
         self.load_resources()
         
@@ -52,6 +84,7 @@ class Tank:
         return (self.__x, self.__y)
         
     def get_warp_destination(self):
+        '''Used in World to get the tank's warp coordinates.'''
         return (self.__warp_x, self.__warp_y)
         
     def __set_position(self, x, y):
@@ -72,82 +105,83 @@ class Tank:
         self.left = load('left')
         self.right = load('right')
         
-        self.facing_img = (self.up, self.down, self.left, self.right)
+        # set the images in the order of the Facing enum
+        img = self.facing_img = [None]*4
+        img[Facing.UP] = self.up
+        img[Facing.DOWN] = self.down
+        img[Facing.LEFT] = self.left
+        img[Facing.RIGHT] = self.right
        
     def blit(self, x, y, z):
         x += self.offset[0]
         y += self.offset[1]
-        self.facing_img[self.facing].blit(x, y, z)
-        
-    def update(self, dt):
-        if not self.brain:
-            return
-            
-        world = self.brain.world
+        self.facing_img[self.facing.value].blit(x, y, z)
     
-        if self.move != 0:
-            facing = self.facing
-            speed = self.move
+    def read_command(self):
+        if self.brain:
+            command = self.brain.pop()
             
-            def clamp(x):
-                if x > 0:
-                    return 1
-                elif x < 0:
-                    return -1
-                else:
-                    return 0
-            
-            speed = clamp(speed)
+            if command in (Brain.FORWARD, Brain.BACKWARD):
+                self.state = self.MOVING
+                self.offset_dt = self.facing.to_vector()
+                self.animation = Animation(0, abs(self.tile_offset[1]), 1.0)
+             
+            if command in (Brain.LEFT, Brain.RIGHT):
+                self.state = self.MOVING
+                self.offset_dt = self.facing.to_vector()
+                self.animation = Animation(0, abs(self.tile_offset[0]), 1.0)
                 
-            self.move = speed
-                
-            dx, dy = 0, 0
-            
-            if facing is self.UP:
-                dy = -speed
-            elif facing is self.DOWN:
-                dy = speed
-            elif facing is self.LEFT:
-                dx = -speed
-            elif facing is self.RIGHT:
-                dx = speed
-            else:
-                raise Exception('Brain meltdown')
-                
-            target = world.get_tile(self.__x+dx, self.__y+dy)
-            current = world.get_tile(self.__x, self.__y)
-            if current[0] is world.dirt:
-                dx *= 0.5
-                dy *= 0.5
-            
+    def update(self, dt):
+        if self.animation:
+            self.animation.update(dt)
+
+        if self.state is self.IDLE:
+            self.read_command()            
+    
+        if self.state is self.MOVING:
             o = self.offset
-            self.offset = (o[0]+dx, o[1]+dy)
+            dt = self.offset_dt
+            anim = self.animation
+            world = self.brain.world
             
-            # see if we're done moving
-            o = self.offset
-            od = self.offset_delta
-            q = lambda x: abs(int(x))
-            if q(o[0]) == abs(od[1]) or q(o[1]) == abs(od[1]):
-               self.offset = (0,0)
-               self.move = 0
-               
+            if anim.done: # done moving, warp to final destination
                # set up a warp
-               self.__warp_x = self.__x + clamp(dx)
-               self.__warp_y = self.__y + clamp(dy)
-               #print self.color, "is preparing to warp to", self.__warp_x, self.__warp_y
-               #print "it is currently at", self.__x, self.__y
-               #print "deltas were", dx, dy
+               self.__warp_x = self.__x + dt[0]
+               self.__warp_y = self.__y + dt[1]
+
                world.warp(self)
                self.__set_position(self.__warp_x, self.__warp_y)
+               self.offset = (0,0)
+               self.animation = None
+               self.state = self.IDLE
+               
+            else: # still moving
+                target = world.get_tile(self.__x+dt[0], self.__y+dt[1])
+                current = world.get_tile(self.__x, self.__y)
+                
+                jitter = (0,0)
+                ri = random.randint
+                progress = anim.unit()
+                anim.speed = self.speed
+                if current[0] is world.dirt and progress < 0.5:
+                    anim.speed = self.reduced_speed
+                    jitter = (ri(-1,1),ri(0,2))
+                if target[0] is world.dirt and progress > 0.5:
+                    anim.speed = self.reduced_speed
+                    jitter = (ri(-1,1),ri(0,2))
+                
+                self.offset = (dt[0]*anim.value+jitter[0], 
+                               dt[1]*anim.value+jitter[1])         
+
             
-    def is_busy(self):
-        if self.move != 0:
-            return True
-            
-        return False
+    def is_idle(self):
+        return self.state == self.IDLE
         
     def kill(self):
         print "BANG! %s is dead." % self.color
+        
+        self.state = self.DEAD
+        
         if self.brain:
             self.brain.world.detonate(self)
 

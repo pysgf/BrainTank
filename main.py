@@ -23,7 +23,7 @@
 import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
-import os
+import os, traceback
 
 from world import World
 
@@ -54,16 +54,18 @@ class Game(pyglet.window.Window):
     def update_closure(self):
         def update(dt):
             try:
-                if not self.brain1.tank.is_busy():
-                    self.brain1.take_turn()
-            except:
+                if self.brain1.tank.is_idle():
+                    self.brain1.think()
+            except Exception as e:
                 self.brain1.kill()
+                traceback.print_exc()
                 
             try:
-                if not self.brain2.tank.is_busy():
-                    self.brain2.take_turn()
-            except:
+                if self.brain2.tank.is_idle():
+                    self.brain2.think()
+            except Exception as e:
                 self.brain2.kill()
+                traceback.print_exc()
                 
             self.world.update(dt)
                 
