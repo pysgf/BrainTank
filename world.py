@@ -24,7 +24,8 @@ import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
 import os, random
-from tank import Tank, Facing
+from tank import Tank
+from utils import Facing
 
 class VoidKill(Exception):
     pass

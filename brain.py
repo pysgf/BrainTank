@@ -20,8 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-import tank
-from tank import *
+from utils import Facing
 
 class Brain:
     '''The Brain is your primary interface to write a custom tank AI.'''

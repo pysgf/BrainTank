@@ -20,6 +20,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+class Facing:
+    '''Handles 4 way facing and conversion to vectors'''
+    
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
+
+    def __init__(self, facing=0):
+        self.value = facing
+        
+    def to_vector(self):
+        if self.value == self.UP:
+            return (0,1)
+        if self.value == self.DOWN:
+            return (0,-1)
+        if self.value == self.LEFT:
+            return (-1,0)            
+        if self.value == self.RIGHT:
+            return (1,0)
+            
+
 class Animation:
     '''Handle a linear animation of a given value.'''
     
@@ -40,4 +62,4 @@ class Animation:
                 self.done = True
                 
     def __str__(self):
-        return "Animation at %.2f of %.2f (+%.2f)" % (self.value, self.stop, self.speed)
+        return "Animation at %.2f of %.2f (+%.2f)" % (self.value, self.stop, self.speed)            

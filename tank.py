@@ -20,34 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-
 import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
 import os, random
-from animation import Animation
+from utils import Animation, Facing
 from brain import Brain
-
-class Facing:
-    '''Handles 4 way facing and conversion to vectors'''
-    
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
-
-    def __init__(self, facing=0):
-        self.value = facing
-        
-    def to_vector(self):
-        if self.value == self.UP:
-            return (0,1)
-        if self.value == self.DOWN:
-            return (0,-1)
-        if self.value == self.LEFT:
-            return (-1,0)            
-        if self.value == self.RIGHT:
-            return (1,0)
 
             
 class Tank:

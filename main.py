@@ -20,6 +20,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+# set sample brains: if you have one put it here
+from brain import DumbBrain
+BRAIN1 = DumbBrain
+BRAIN2 = DumbBrain
+
 import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
@@ -80,7 +85,6 @@ class Game(pyglet.window.Window):
         
 
 if __name__ == '__main__':
-    from brain import DumbBrain
-    Game(DumbBrain, DumbBrain)
+    Game(BRAIN1, BRAIN2)
     pyglet.clock.set_fps_limit(60)
     pyglet.app.run()
