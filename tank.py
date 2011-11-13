@@ -109,6 +109,12 @@ class Tank:
                 self.offset_dt = self.facing.to_vector()
                 self.animation = Animation(0, abs(self.tile_offset[0]), 1.0)
                 
+    def stop(self):
+        '''Stop current state and return to idle.'''
+        self.offset = (0,0)
+        self.animation = None
+        self.state = self.IDLE
+                
     def update(self, dt):
         if self.animation:
             self.animation.update(dt)
@@ -129,14 +135,18 @@ class Tank:
 
                world.warp(self)
                self.__set_position(self.__warp_x, self.__warp_y)
-               self.offset = (0,0)
-               self.animation = None
-               self.state = self.IDLE
+               self.stop()
                
             else: # still moving
                 target = world.get_tile(self.__x+dt[0], self.__y+dt[1])
                 current = world.get_tile(self.__x, self.__y)
                 
+                # look for blocking items
+                if target[0] in world.blocking or target[1] in world.blocking_item:
+                    self.stop()
+                    return
+                
+                # move speed adjustment
                 jitter = (0,0)
                 ri = random.randint
                 progress = anim.unit()

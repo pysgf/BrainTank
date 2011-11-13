@@ -83,6 +83,8 @@ class World:
         self.heart = load('Heart')
         self.gem = load('Gem Blue')
         
+        self.blocking_item = (self.rock,self.tree,self.bush)
+        
         self.tile_height = self.grass.texture.height
         self.tile_width = self.grass.texture.width
         

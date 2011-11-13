@@ -33,7 +33,6 @@ class Brain:
     BACKWARD = 5
     SHOOT = 6
     
-    
     def __init__(self, world, tank):
         self.world = world
         self.tank = tank
