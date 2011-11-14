@@ -1,3 +1,12 @@
+This is a little project to each programming skills as well as basic AI.
+For now you can play with the DummyBrain in brain.py or implement your own.
+Import it in main.py and hook it up to BRAIN1 or BRAIN2 to run it.
+
+TODO:
+add tank weapons / damage
+add explosions and other animations
+add GUI elements like victory screen, etc
+
 Requirements:
 Python 2.7+ http://www.python.org/
 Pyglet: http://pyglet.org/
