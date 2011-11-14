@@ -25,13 +25,23 @@ from utils import Facing
 class Brain:
     '''The Brain is your primary interface to write a custom tank AI.'''
     
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
-    FORWARD = 4
-    BACKWARD = 5
-    SHOOT = 6
+    UP = Facing.UP
+    DOWN = Facing.DOWN
+    LEFT = Facing.LEFT
+    RIGHT = Facing.RIGHT
+    FORWARD = 10
+    BACKWARD = 11
+    SHOOT = 12
+    
+    command_to_str = {
+        Facing.UP: 'UP',
+        Facing.DOWN: 'DOWN',
+        Facing.LEFT: 'LEFT',
+        Facing.RIGHT: 'RIGHT',
+        10: 'FORWARD',
+        11: 'BACKWARD',
+        12: 'SHOOT'
+    }
     
     def __init__(self, world, tank):
         self.world = world
@@ -39,6 +49,8 @@ class Brain:
         self.tank.brain = self
         
         self.memory = []
+        
+        self.setup()
         
     def forget(self):
         '''Forget (clear) saved command queue'''
@@ -50,6 +62,19 @@ class Brain:
             return self.memory.pop(0)
         else:
             return None
+        
+    def set_facing(self, facing):
+        '''Queue the command to change to a certain facing.'''
+        if facing is Facing.UP:
+            self.face_up()
+        elif facing is Facing.DOWN:
+            self.face_down()
+        elif facing is Facing.RIGHT:
+            self.face_right()
+        elif facing is Facing.LEFT:
+            self.face_left()
+        else:
+            raise Exception('brain malfunction')
         
     def face_up(self):
         '''Queue the command to change facing to up.'''
@@ -91,6 +116,11 @@ class Brain:
            It returns Facing.UP, Facing.DOWN, etc.'''
         return self.tank.facing.value
         
+    def direction(self):
+        '''Return the facing of the tank.
+           It returns (dx,dy) pointing in the direction the tank is.'''
+        return self.tank.facing.to_vector()
+        
     def radar(self, x, y):
         '''Return the tile information for a given coordinate.
            Returns (terrain, item). If no terrain or item, it uses None.
@@ -101,13 +131,49 @@ class Brain:
         '''Destroys the tank.'''
         self.tank.kill()
         
+    def setup(self):
+        '''Sets up the brain for the round.'''
+        pass
+        
     def think(self):
         '''Implement this in your custom brain. 
            It is only called if the tank has no commands.'''
         pass
         
         
+import random
+        
 class DumbBrain(Brain):
+    def setup(self):
+        pass
+
     def think(self):
+        self.forget() # clear old commands 
+        
+        color = self.tank.color
+            
         x,y = self.position()
+        face = self.facing()
+        dx, dy = self.direction()
+        
+        target = self.radar(x + dx, y + dy)
+        print color, "at", x, y, "and facing", Facing.facing_to_str[face]
+        print color, "will be moving into:", target
+
+        def new_facing():
+            # out of all facing possibilities, choose one we don't have currently
+            new_facing = [Facing.UP, Facing.DOWN, Facing.LEFT, Facing.RIGHT]
+            new_facing.remove(face)
+            return random.choice(new_facing)
+        
+        # avoid moving into blocking items
+        if target[1] is not None or target[0] is self.world.water or target[0] is None:
+            self.set_facing(new_facing())
+        elif random.randint(0,5) == 0:
+            # 1 out of 5 times choose a new direction
+            self.set_facing(new_facing())
+        
         self.move_forward()
+        
+        queue = ', '.join([self.command_to_str[x] for x in self.memory])
+        print color,"brain queue:", queue

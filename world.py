@@ -30,6 +30,17 @@ from utils import Facing
 class VoidKill(Exception):
     pass
 
+class Tile:
+    def __init__(self, name, filename):
+        self.name = name
+        self.img = pyglet.resource.image(filename)
+        
+    def blit(self, *args, **kwargs):
+        self.img.blit(*args, **kwargs)
+        
+    def __repr__(self):
+        return "Tile(%s)" % self.name
+    
 class World:
     '''Generates, draws, and provides info about game worlds.'''
 
@@ -63,7 +74,7 @@ class World:
 
         def load(name):
             pack = "PlanetCute PNG"
-            return pyglet.resource.image('%s/%s.png' % (pack, name))
+            return Tile(name, '%s/%s.png' % (pack, name))
             
         self.grass = load('Grass Block')
         self.dirt = load('Dirt Block')
@@ -85,8 +96,8 @@ class World:
         
         self.blocking_item = (self.rock,self.tree,self.bush)
         
-        self.tile_height = self.grass.texture.height
-        self.tile_width = self.grass.texture.width
+        self.tile_height = 171
+        self.tile_width = 101
         
         self.half_stack = 43
         self.adjacent_stack = -81
@@ -121,7 +132,7 @@ class World:
         if r.randint(0,1):
             s1, s2 = s2, s1
         
-        tile_offset = (self.adjacent_stack, self.adjacent_side)
+        tile_offset = (self.adjacent_side, self.adjacent_stack)
         self.red_tank = Tank(s1[0], s1[1], s1[2], 'red', tile_offset)
         self.blue_tank = Tank(s2[0], s2[1], s2[2], 'blue', tile_offset)
         
@@ -129,7 +140,7 @@ class World:
         self.__set_tile(s2, (self.plain, self.blue_tank))
         
     def __set_tile(self, pos, data):
-        print "setting", pos, data
+        #print "setting", pos, data
         self.__map[pos[1]][pos[0]] = data
         
     def draw(self):

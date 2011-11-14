@@ -33,8 +33,9 @@ class Tank:
 
     IDLE = 0
     MOVING = 1
-    SHOOTING = 2
-    DEAD = 3
+    TURNING = 2
+    SHOOTING = 3
+    DEAD = 4
     
     def __init__(self, x, y, facing, color, tile_offset):
         self.__set_position(x,y)
@@ -56,6 +57,12 @@ class Tank:
         self.reduced_speed = self.speed *0.5
         
         self.load_resources()
+        
+    def __str__(self):
+        return "%s tank" % self.color
+        
+    def __repr__(self):
+        return "Tank(%s)" % self.color
         
     def get_position(self):
         '''Returns position (x,y) as a tuple'''
@@ -98,16 +105,22 @@ class Tank:
     def read_command(self):
         if self.brain:
             command = self.brain.pop()
+            if command in Brain.command_to_str:
+                print self.color, 'executing', Brain.command_to_str[command]
             
             if command in (Brain.FORWARD, Brain.BACKWARD):
                 self.state = self.MOVING
                 self.offset_dt = self.facing.to_vector()
-                self.animation = Animation(0, abs(self.tile_offset[1]), 1.0)
+                
+                end = self.tile_offset[0]
+                if self.facing.value in (Facing.DOWN, Facing.UP):
+                    end = self.tile_offset[1]
+                    
+                self.animation = Animation(0, abs(end), 1.0)
              
-            if command in (Brain.LEFT, Brain.RIGHT):
-                self.state = self.MOVING
-                self.offset_dt = self.facing.to_vector()
-                self.animation = Animation(0, abs(self.tile_offset[0]), 1.0)
+            if command in (Brain.UP, Brain.DOWN, Brain.LEFT, Brain.RIGHT):
+                self.state = self.TURNING
+                self.facing.value = command
                 
     def stop(self):
         '''Stop current state and return to idle.'''
@@ -121,6 +134,10 @@ class Tank:
 
         if self.state is self.IDLE:
             self.read_command()            
+    
+        if self.state is self.TURNING:
+            self.state = self.IDLE
+            return
     
         if self.state is self.MOVING:
             o = self.offset
@@ -144,6 +161,19 @@ class Tank:
                 # look for blocking items
                 if target[0] in world.blocking or target[1] in world.blocking_item:
                     self.stop()
+                    print self.color, 'tried to drive into item, stopping'
+                    return
+                    
+                # don't move off map
+                if target[0] is None:
+                    self.stop()
+                    print self.color, 'tried to drive off map, stopping'
+                    return
+                
+                # don't collide with another tank
+                if target[1] in (world.blue_tank, world.red_tank):
+                    self.stop()
+                    print self.color, 'tried to ram another tank, stopping'
                     return
                 
                 # move speed adjustment
@@ -159,7 +189,7 @@ class Tank:
                     jitter = (ri(-1,1),ri(0,2))
                 
                 self.offset = (dt[0]*anim.value+jitter[0], 
-                               dt[1]*anim.value+jitter[1])         
+                               -dt[1]*anim.value+jitter[1])      
 
             
     def is_idle(self):
