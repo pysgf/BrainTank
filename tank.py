@@ -39,11 +39,9 @@ class Tank:
     
     def __init__(self, x, y, facing, color, tile_offset):
         self.__set_position(x,y)
-        self.facing = Facing(facing)
-        self.color = color
+        self.__facing = Facing(facing)
+        self.__color = color
 
-        self.velocity = 0
-        
         self.offset_dt = (0,0)
         self.offset = (0,0)
         self.tile_offset = tile_offset
@@ -59,10 +57,22 @@ class Tank:
         self.load_resources()
         
     def __str__(self):
-        return "%s tank" % self.color
+        return "%s tank" % self.__color
         
     def __repr__(self):
-        return "Tank(%s)" % self.color
+        return "Tank(%s)" % self.__color
+
+    def color(self):
+        '''Returns the color string of the tank'''
+        return self.__color
+
+    def get_facing(self):
+        '''Returns the facing as Facing.LEFT, Facing.RIGHT, etc'''
+        return self.__facing.value
+
+    def get_facing_vector(self):
+        '''Returns the facing as (dx,dy)'''
+        return self.__facing.to_vector()
         
     def get_position(self):
         '''Returns position (x,y) as a tuple'''
@@ -82,7 +92,7 @@ class Tank:
     
         def load(dir):
             pack = "tank"
-            col = self.color
+            col = self.__color
             return pyglet.resource.image('%s/%s_%s.png' % (pack, col, dir))
             
         self.up = load('up')
@@ -100,27 +110,27 @@ class Tank:
     def blit(self, x, y, z):
         x += self.offset[0]
         y += self.offset[1]
-        self.facing_img[self.facing.value].blit(x, y, z)
+        self.facing_img[self.__facing.value].blit(x, y, z)
     
     def read_command(self):
         if self.brain:
             command = self.brain.pop()
             if command in Brain.command_to_str:
-                print self.color, 'executing', Brain.command_to_str[command]
+                print self.__color, 'executing', Brain.command_to_str[command]
             
             if command in (Brain.FORWARD, Brain.BACKWARD):
                 self.state = self.MOVING
-                self.offset_dt = self.facing.to_vector()
+                self.offset_dt = self.__facing.to_vector()
                 
                 end = self.tile_offset[0]
-                if self.facing.value in (Facing.DOWN, Facing.UP):
+                if self.__facing.value in (Facing.DOWN, Facing.UP):
                     end = self.tile_offset[1]
                     
                 self.animation = Animation(0, abs(end), 1.0)
              
             if command in (Brain.UP, Brain.DOWN, Brain.LEFT, Brain.RIGHT):
                 self.state = self.TURNING
-                self.facing.value = command
+                self.__facing.value = command
                 
     def stop(self):
         '''Stop current state and return to idle.'''
@@ -161,19 +171,19 @@ class Tank:
                 # look for blocking items
                 if target[0] in world.blocking or target[1] in world.blocking_item:
                     self.stop()
-                    print self.color, 'tried to drive into item, stopping'
+                    print self.__color, 'tried to drive into item, stopping'
                     return
                     
                 # don't move off map
                 if target[0] is None:
                     self.stop()
-                    print self.color, 'tried to drive off map, stopping'
+                    print self.__color, 'tried to drive off map, stopping'
                     return
                 
                 # don't collide with another tank
-                if target[1] in (world.blue_tank, world.red_tank):
+                if target[1] in world.tanks:
                     self.stop()
-                    print self.color, 'tried to ram another tank, stopping'
+                    print self.__color, 'tried to ram another tank, stopping'
                     return
                 
                 # move speed adjustment
@@ -196,7 +206,7 @@ class Tank:
         return self.state == self.IDLE
         
     def kill(self):
-        print "BANG! %s is dead." % self.color
+        print "BANG! %s is dead." % self.__color
         
         self.state = self.DEAD
         

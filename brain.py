@@ -114,12 +114,12 @@ class Brain:
     def facing(self):
         '''Return the facing of the tank.
            It returns Facing.UP, Facing.DOWN, etc.'''
-        return self.tank.facing.value
+        return self.tank.get_facing()
         
     def direction(self):
         '''Return the facing of the tank.
            It returns (dx,dy) pointing in the direction the tank is.'''
-        return self.tank.facing.to_vector()
+        return self.tank.get_facing_vector()
         
     def radar(self, x, y):
         '''Return the tile information for a given coordinate.
@@ -150,7 +150,7 @@ class DumbBrain(Brain):
     def think(self):
         self.forget() # clear old commands 
         
-        color = self.tank.color
+        color = self.tank.color()
             
         x,y = self.position()
         face = self.facing()

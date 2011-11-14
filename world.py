@@ -133,11 +133,12 @@ class World:
             s1, s2 = s2, s1
         
         tile_offset = (self.adjacent_side, self.adjacent_stack)
-        self.red_tank = Tank(s1[0], s1[1], s1[2], 'red', tile_offset)
-        self.blue_tank = Tank(s2[0], s2[1], s2[2], 'blue', tile_offset)
+        red_tank = Tank(s1[0], s1[1], s1[2], 'red', tile_offset)
+        blue_tank = Tank(s2[0], s2[1], s2[2], 'blue', tile_offset)
         
-        self.__set_tile(s1, (self.plain, self.red_tank))
-        self.__set_tile(s2, (self.plain, self.blue_tank))
+        self.__set_tile(s1, (self.plain, red_tank))
+        self.__set_tile(s2, (self.plain, blue_tank))
+        self.tanks = (red_tank, blue_tank)
         
     def __set_tile(self, pos, data):
         #print "setting", pos, data
@@ -189,7 +190,7 @@ class World:
                 
     def update(self, dt):
         if not self.game_over:
-            tanks = [self.red_tank, self.blue_tank]
+            tanks = list(self.tanks)
             self.rand.shuffle(tanks)
 
             # bad tanks will try to escape the game board, capture them
@@ -204,7 +205,7 @@ class World:
                 tanks[1].kill()
 
     def detonate(self, thing):
-        if thing in (self.red_tank, self.blue_tank):
+        if thing in self.tanks:
             self.game_over = True
             
         # TODO: set up explosion

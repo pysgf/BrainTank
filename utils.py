@@ -37,6 +37,9 @@ class Facing:
 
     def __init__(self, facing=0):
         self.value = facing
+
+    def __repr__(self):
+        return "Facing(%s)" % facing_to_str.get(self.value, 'UNKNOWN')
         
     def to_vector(self):
         if self.value == self.UP:

@@ -41,8 +41,8 @@ class Game(pyglet.window.Window):
                                    config=config, resizable=True)
        
         self.world = World(10, 8)
-        self.brain1 = brain1(self.world, self.world.red_tank)
-        self.brain2 = brain2(self.world, self.world.blue_tank)
+        self.brain1 = brain1(self.world, self.world.tanks[0])
+        self.brain2 = brain2(self.world, self.world.tanks[1])
         
         pyglet.clock.schedule_interval(self.update_closure(), 1.0/60.0)
         
