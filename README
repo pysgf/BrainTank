@@ -1,6 +1,7 @@
 Requirements:
 Python 2.7+ http://www.python.org/
 Pyglet: http://pyglet.org/
+  note for OSX users: you'll need a special version of Pyglet for 64bit Python. I've uploaded an egg on https://github.com/mathom/BrainTank/downloads for you to use.
 
 The code is GPLv3, but the art is not.
 
