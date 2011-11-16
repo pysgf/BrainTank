@@ -37,7 +37,7 @@ class Tank:
     SHOOTING = 3
     DEAD = 4
     
-    def __init__(self, x, y, facing, color, tile_offset):
+    def __init__(self, world, x, y, facing, color, tile_offset):
         self.__set_position(x,y)
         self.__facing = Facing(facing)
         self.__color = color
@@ -49,6 +49,7 @@ class Tank:
         self.state = self.IDLE
         self.animation = None
         self.brain = None
+        self.world = world
         
         # speed is per second
         self.speed = 100 
@@ -153,7 +154,7 @@ class Tank:
             o = self.offset
             dt = self.offset_dt
             anim = self.animation
-            world = self.brain.world
+            world = self.world
             
             if anim.done: # done moving, warp to final destination
                # set up a warp
@@ -211,6 +212,6 @@ class Tank:
         self.state = self.DEAD
         
         if self.brain:
-            self.brain.world.detonate(self)
+            self.world.detonate(self)
 
         

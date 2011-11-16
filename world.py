@@ -133,8 +133,8 @@ class World:
             s1, s2 = s2, s1
         
         tile_offset = (self.adjacent_side, self.adjacent_stack)
-        red_tank = Tank(s1[0], s1[1], s1[2], 'red', tile_offset)
-        blue_tank = Tank(s2[0], s2[1], s2[2], 'blue', tile_offset)
+        red_tank = Tank(self, s1[0], s1[1], s1[2], 'red', tile_offset)
+        blue_tank = Tank(self, s2[0], s2[1], s2[2], 'blue', tile_offset)
         
         self.__set_tile(s1, (self.plain, red_tank))
         self.__set_tile(s2, (self.plain, blue_tank))

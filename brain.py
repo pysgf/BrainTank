@@ -20,6 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+import sys
 from utils import Facing
 
 class Brain:
@@ -43,14 +44,18 @@ class Brain:
         12: 'SHOOT'
     }
     
-    def __init__(self, world, tank):
-        self.world = world
+    def __init__(self, tank):
         self.tank = tank
         self.tank.brain = self
         
         self.memory = []
         
         self.setup()
+
+    def detach(self):
+        '''Detach brain in preparation for attaching a new one.'''
+        self.tank.brain = None
+        self.tank = None
         
     def forget(self):
         '''Forget (clear) saved command queue'''
@@ -125,7 +130,7 @@ class Brain:
         '''Return the tile information for a given coordinate.
            Returns (terrain, item). If no terrain or item, it uses None.
            See the World docs for some terrain types.'''
-        return self.world.get_tile(x, y)
+        return self.tank.world.get_tile(x, y)
        
     def kill(self):
         '''Destroys the tank.'''
@@ -139,6 +144,20 @@ class Brain:
         '''Implement this in your custom brain. 
            It is only called if the tank has no commands.'''
         pass
+
+def import_think(name):
+    if name in sys.modules:
+        reload(sys.modules[name])
+    else:
+        __import__(name)
+
+    return sys.modules[name]
+
+
+def do_think(tank, thinker):
+    #for 
+    thinker.think()
+
         
         
 import random
@@ -167,7 +186,7 @@ class DumbBrain(Brain):
             return random.choice(new_facing)
         
         # avoid moving into blocking items
-        if target[1] is not None or target[0] is self.world.water or target[0] is None:
+        if target[1] is not None or target[0] is self.tank.world.water or target[0] is None:
             self.set_facing(new_facing())
         elif random.randint(0,5) == 0:
             # 1 out of 5 times choose a new direction

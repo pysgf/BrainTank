@@ -21,6 +21,7 @@
 ###############################################################################
 
 # set sample brains: if you have one put it here
+from tank import Tank
 from brain import DumbBrain
 BRAIN1 = DumbBrain
 BRAIN2 = DumbBrain
@@ -41,8 +42,8 @@ class Game(pyglet.window.Window):
                                    config=config, resizable=True)
        
         self.world = World(10, 8)
-        self.brain1 = brain1(self.world, self.world.tanks[0])
-        self.brain2 = brain2(self.world, self.world.tanks[1])
+        self.brain1 = brain1(self.world.tanks[0])
+        self.brain2 = brain2(self.world.tanks[1])
         
         pyglet.clock.schedule_interval(self.update_closure(), 1.0/60.0)
         
@@ -58,20 +59,17 @@ class Game(pyglet.window.Window):
 
     def update_closure(self):
         def update(dt):
-            try:
-                if self.brain1.tank.is_idle():
-                    self.brain1.think()
-            except Exception as e:
-                self.brain1.kill()
-                traceback.print_exc()
-                
-            try:
-                if self.brain2.tank.is_idle():
-                    self.brain2.think()
-            except Exception as e:
-                self.brain2.kill()
-                traceback.print_exc()
-                
+            game_over = False
+
+            for tank in self.world.tanks:
+                if tank.brain:
+                    try:
+                        if tank.is_idle():
+                            tank.brain.think()
+                    except Exception as e:
+                        tank.brain.kill()
+                        traceback.print_exc()
+
             self.world.update(dt)
                 
         return update
