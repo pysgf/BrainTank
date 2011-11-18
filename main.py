@@ -24,10 +24,11 @@
 from tank import Tank
 from brain import thinker_import, thinker_think
 import sys
+from config import THINKERS
 
 sys.path.append('brains')
-THINKER1 = thinker_import('wander')
-THINKER2 = thinker_import('wander')
+THINKER1 = thinker_import(THINKERS[0])
+THINKER2 = thinker_import(THINKERS[1])
 
 import pyglet
 from pyglet.window import key
@@ -69,8 +70,9 @@ class Game(pyglet.window.Window):
                         if tank.is_idle():
                             thinker_think(tank, thinker)
                     except Exception as e:
-                        tank.brain.kill()
-                        traceback.print_exc()
+                        raise e
+                        #tank.brain.kill()
+                        #traceback.print_exc()
 
             self.world.update(dt)
                 

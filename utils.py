@@ -31,6 +31,39 @@ class Symbol:
 
     vals = set(range(8))
 
+    
+class Rect:
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        
+    def touches(self, o):
+        # important: y is inverted in our projection...
+        if o.x + o.w < self.x:
+            return False
+        if o.y + o.h > self.y:
+            return False
+        if o.x > self.x + self.w:
+            return False
+        if o.y < self.y + self.h:
+            return False
+            
+        return True
+        
+    def debug_draw(self):
+        import pyglet
+        import pyglet.gl as gl
+        
+        x,y,w,h = self.x, self.y, self.w, self.h
+        vertex_list = pyglet.graphics.vertex_list(4,    
+            ('v2f', (x,y, x+w,y, x+w,y+h, x,y+h)),
+            ('c3B', (255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0))
+        )
+        vertex_list.draw(gl.GL_LINE_LOOP)
+        
+    
 class Facing:
     '''Handles 4 way facing and conversion to vectors'''
 
@@ -50,6 +83,7 @@ class Facing:
     def to_vector(self):
         return self.vec[self.value]
 
+        
 class Animation:
     '''Handle a linear animation of a given value.'''
     

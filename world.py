@@ -52,6 +52,8 @@ class World:
         self.rand = random.Random()
         self.rand.seed(seed)
         
+        self.bullets = []
+        self.explosions = []
         self.game_over = False
         
         self.load_resources()
@@ -96,16 +98,18 @@ class World:
         self.heart = load('Heart')
         self.gem = load('Gem Blue')
         
+        self.destructible = (self.rock, self.tree)
+        
         self.blocking_item = (self.rock,self.tree,self.bush)
         
         self.tile_height = 171
         self.tile_width = 101
         
         self.half_stack = 43
-        self.adjacent_stack = -81
-        self.adjacent_side = self.tile_width
+        self.tile_size = (101, -81)
+        self.tile_size_inv = (1.0/self.tile_size[0], 1.0/self.tile_size[1])
         self.start_x = 0
-        self.start_y = (self.height-1) * -self.adjacent_stack
+        self.start_y = (self.height-1) * -self.tile_size[1]
        
     def generate_map(self):
         self.__map = [[(self.grass, None)]*self.width for x in range(self.height)]
@@ -134,9 +138,8 @@ class World:
         if r.randint(0,1):
             s1, s2 = s2, s1
         
-        tile_offset = (self.adjacent_side, self.adjacent_stack)
-        red_tank = Tank(self, s1[0], s1[1], s1[2], 'red', tile_offset)
-        blue_tank = Tank(self, s2[0], s2[1], s2[2], 'blue', tile_offset)
+        red_tank = Tank(self, s1[0], s1[1], s1[2], 'red')
+        blue_tank = Tank(self, s2[0], s2[1], s2[2], 'blue')
         
         self.__set_tile(s1, (self.plain, red_tank))
         self.__set_tile(s2, (self.plain, blue_tank))
@@ -146,15 +149,27 @@ class World:
         #print "setting", pos, data
         self.__map[pos[1]][pos[0]] = data
         
+    def world_to_screen(self, x, y):
+        '''Convert tile coordinates to screen pixel coordinates'''
+        x = self.start_x + x * self.tile_size[0]
+        y = self.start_y + (y-1) * self.tile_size[1]
+        return (x,y)
+
+    def screen_to_world(self, x, y):
+        '''Convert screen pixel coordinates to tile coordinates'''
+        x = (x - self.start_x) * self.tile_size_inv[0]
+        y = (y - self.start_y) * self.tile_size_inv[1] + 1
+        return (int(x),int(y))
+        
     def draw(self):
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glDepthFunc(gl.GL_LEQUAL)
         
-        dx = self.adjacent_side
-        dy = self.adjacent_stack
-        stacked = self.half_stack
+        dx = self.tile_size[0]
+        dy = self.tile_size[1]
+        stack = self.half_stack
         
         # terrain pass
         x, y = self.start_x, self.start_y
@@ -165,13 +180,18 @@ class World:
                 x += dx
             y += dy
             
+        # bullet pass
+        
+        for bullet in self.bullets:
+            bullet.draw()
+            
         # item pass
         x, y = self.start_x, self.start_y
         for row in self.__map:
             x = self.start_x
             for tile,item in row:
                 if item is not None:
-                    item.blit(x,y+stacked,1)
+                    item.blit(x,y+stack,1)
                 x += dx
             y += dy
 
@@ -190,24 +210,64 @@ class World:
         self.__set_tile(wpos, (dst[0], tank))
                 
     def update(self, dt):
+        dead_expl = []
+        for explosion in self.explosions:
+            explosion.update(dt)
+            if not explosion.is_exploding():
+                dead_expl.append(explosion)
+        for explosion in dead_expl:
+            self.explosions.remove(explosion)
+    
         if not self.game_over:
+            # update bullets
+            dead_bullets = []
+            for bullet in self.bullets:
+                bullet.update(dt)
+                x,y = self.screen_to_world(bullet.x, bullet.y)
+                tile, item = self.get_tile(x,y)
+                #print "bullet at", x, y, "facing", bullet.facing
+                if x < 0 or y < 0 or x >= self.width or y >= self.height:
+                    dead_bullets.append(bullet)
+                elif item in self.destructible:
+                    self.detonate(item, pos=(x,y))
+                    dead_bullets.append(bullet)
+                #else:
+                    #self.__set_tile((x,y), (tile, self.spawn))
+                    
+            for bullet in dead_bullets:
+                self.bullets.remove(bullet)
+                bullet.tank.bullet = None # bleh
+                self.detonate(bullet)
+
+            # update tanks
             tanks = list(self.tanks)
             self.rand.shuffle(tanks)
 
-            # bad tanks will try to escape the game board, capture them
-            try:
-                tanks[0].update(dt)
-            except VoidKill:
-                tanks[0].kill()
+            for tank in tanks:
+                tank.update(dt)
                 
-            try:
-                tanks[1].update(dt)
-            except VoidKill:
-                tanks[1].kill()
+                # check for tank collision w/ bullets
+                # slow but i'm in a hurry and it's python anyway lol
+                trect = tank.rect()
+                
+                for bullet in self.bullets:
+                    #print "checking", tank.color, "against", bullet.tank.color, "'s bullet"
+                    if bullet.tank is not tank and bullet.rect().touches(trect):
+                        tank.kill()
 
-    def detonate(self, thing):
+    def detonate(self, thing, pos=None):
+        '''Detonate (destroy) an object on the map, optionally clearing the item at pos'''
+        
+        print "blowing up", thing
+        
         if thing in self.tanks:
+            print "GAME OVER!"
             self.game_over = True
-            
-        # TODO: set up explosion
+
+        if pos:
+            tile, item = self.get_tile(pos[0], pos[1])
+            self.__set_tile(pos, (tile, None))
+        
+    def add_bullet(self, bullet):
+        self.bullets.append(bullet)
         

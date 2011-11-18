@@ -34,6 +34,7 @@ Variables available to brains:
     direction - tuple (x,y), unit vector representing tank facing
 
 Functions available to brains:
+    memory() - returns [symbol], a read only copy of queued commands
     forget() - clear all queued brain commands
     face(symbol) - change tank facing to symbol UP, DOWN, LEFT, or RIGHT
     forward() - move tank forward one space
@@ -42,6 +43,9 @@ Functions available to brains:
     radar(x,y) - get a tuple (tile, item) from the map's x,y coordinate
     kill() - self destruct tank
 
+Symbols:
+    UP, DOWN, LEFT, RIGHT, FORWARD, BACKWARD, SHOOT
+    
 Tiles:
     GRASS, DIRT, PLAIN, WATER
     SAFE_TILES = (GRASS, DIRT, PLAIN)
@@ -50,12 +54,16 @@ Tiles:
 Items:
     ROCK, TREE
     
+Lookup Helper Dictionaries:
+    SYMBOL_TO_STR - takes a symbol and returns a string
+    FACING_TO_VEC - takes a facing symbol and returns the (x,y) unit vector
+    
 '''
 
 import random
 
 def think():
-    forget() # clear old commands 
+    #forget() # clear old commands 
         
     x, y = position
     dx, dy = direction
@@ -68,16 +76,24 @@ def think():
         # out of all facing possibilities, choose one we don't have currently
         new_facing = [UP, DOWN, LEFT, RIGHT]
         new_facing.remove(facing)
+        good_facing = []
+                
         return random.choice(new_facing)
     
     # avoid moving into blocking items
     if item is not None or tile in (WATER, None):
+        forget() # clear possibly bad commands
         face(new_facing())
     elif random.randint(0,5) == 0:
         # 1 out of 5 times choose a new direction
         face(new_facing())
     
-    forward()
+    if FORWARD not in memory():
+        forward()
     
-    #queue = ', '.join([self.command_to_str[x] for x in self.memory])
-    #print color,"brain queue:", queue
+    if random.randint(0,3) == 0:
+        # 1 out of 3 times try to shoot
+        shoot()
+    
+    queue = ', '.join([SYMBOL_TO_STR[x] for x in memory()])
+    print color,"brain queue:", queue

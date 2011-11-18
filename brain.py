@@ -93,11 +93,7 @@ class Brain:
     def kill(self):
         '''Destroys the tank.'''
         self.tank.kill()
-        
-    def think(self):
-        '''Implement this in your custom brain. 
-           It is only called if the tank has no commands.'''
-        pass
+
 
 def thinker_import(name):
     '''Import a new thinker or reload it if it exists already'''
@@ -123,9 +119,15 @@ def thinker_think(tank, thinker):
     thinker.DOWN = Symbol.DOWN
     thinker.LEFT = Symbol.LEFT
     thinker.RIGHT = Symbol.RIGHT
+    thinker.SHOOT = Symbol.SHOOT
+    thinker.FORWARD = Symbol.FORWARD
+    thinker.BACKWARD = Symbol.BACKWARD
     
     thinker.SYMBOL_TO_STR = {}
     thinker.SYMBOL_TO_STR.update(Symbol.str)
+    
+    thinker.FACING_TO_VEC = {}
+    thinker.FACING_TO_VEC.update(Facing.vec)
     
     world = tank.world
     thinker.GRASS = world.grass
@@ -140,6 +142,7 @@ def thinker_think(tank, thinker):
     thinker.TREE = world.tree
     
     # functions
+    thinker.memory = lambda: brain.memory[:]
     thinker.forget = brain.forget
     thinker.face = brain.face
     thinker.forward = brain.forward
