@@ -22,9 +22,12 @@
 
 # set sample brains: if you have one put it here
 from tank import Tank
-from brain import DumbBrain
-BRAIN1 = DumbBrain
-BRAIN2 = DumbBrain
+from brain import thinker_import, thinker_think
+import sys
+
+sys.path.append('brains')
+THINKER1 = thinker_import('wander')
+THINKER2 = thinker_import('wander')
 
 import pyglet
 from pyglet.window import key
@@ -34,7 +37,7 @@ import os, traceback
 from world import World
 
 class Game(pyglet.window.Window):
-    def __init__(self, brain1, brain2):
+    def __init__(self, thinkers):
         config = pyglet.gl.Config(buffer_size=32, 
                                   alpha_size=8, 
                                   double_buffer=True)
@@ -42,8 +45,7 @@ class Game(pyglet.window.Window):
                                    config=config, resizable=True)
        
         self.world = World(10, 8)
-        self.brain1 = brain1(self.world.tanks[0])
-        self.brain2 = brain2(self.world.tanks[1])
+        self.thinkers = thinkers
         
         pyglet.clock.schedule_interval(self.update_closure(), 1.0/60.0)
         
@@ -61,11 +63,11 @@ class Game(pyglet.window.Window):
         def update(dt):
             game_over = False
 
-            for tank in self.world.tanks:
+            for tank, thinker in zip(self.world.tanks, self.thinkers):
                 if tank.brain:
                     try:
                         if tank.is_idle():
-                            tank.brain.think()
+                            thinker_think(tank, thinker)
                     except Exception as e:
                         tank.brain.kill()
                         traceback.print_exc()
@@ -83,6 +85,6 @@ class Game(pyglet.window.Window):
         
 
 if __name__ == '__main__':
-    Game(BRAIN1, BRAIN2)
+    Game((THINKER1, THINKER2))
     pyglet.clock.set_fps_limit(60)
     pyglet.app.run()

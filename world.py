@@ -25,7 +25,8 @@ from pyglet.window import key
 import pyglet.gl as gl
 import os, random
 from tank import Tank
-from utils import Facing
+from utils import Facing, Symbol
+
 
 class VoidKill(Exception):
     pass
@@ -40,6 +41,7 @@ class Tile:
         
     def __repr__(self):
         return "Tile(%s)" % self.name
+    
     
 class World:
     '''Generates, draws, and provides info about game worlds.'''
@@ -127,8 +129,8 @@ class World:
                 row[i] = (tile, item)
                 
         # clear spawn points
-        s1 = (0, 0, Facing.RIGHT)
-        s2 = (self.width-1, self.height-1, Facing.LEFT)
+        s1 = (0, 0, Symbol.RIGHT)
+        s2 = (self.width-1, self.height-1, Symbol.LEFT)
         if r.randint(0,1):
             s1, s2 = s2, s1
         
@@ -186,7 +188,6 @@ class World:
             
         self.__set_tile(pos, (src[0], None))
         self.__set_tile(wpos, (dst[0], tank))
-        
                 
     def update(self, dt):
         if not self.game_over:

@@ -20,37 +20,35 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+class Symbol:
+    '''Symbols used in Facing and Brain'''
+    
+    # pretty gross...
+    UP, DOWN, LEFT, RIGHT, FORWARD, BACKWARD, SHOOT, DROP = range(8)
+    str = dict(zip(range(8),
+        ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FORWARD', 'BACKWARD', 'SHOOT', 'DROP'),
+    ))
+
+    vals = set(range(8))
+
 class Facing:
     '''Handles 4 way facing and conversion to vectors'''
-    
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
-    
-    facing_to_str = {
-        0: 'UP',
-        1: 'DOWN',
-        2: 'LEFT',
-        3: 'RIGHT'
-    }
 
+    vec = {
+        Symbol.UP:    ( 0,-1),
+        Symbol.DOWN:  ( 0, 1),
+        Symbol.LEFT:  (-1, 0),
+        Symbol.RIGHT: ( 1, 0)
+    }
+    
     def __init__(self, facing=0):
         self.value = facing
 
     def __repr__(self):
-        return "Facing(%s)" % facing_to_str.get(self.value, 'UNKNOWN')
-        
+        return "Facing(%s)" % Symbol.str[self.value]
+     
     def to_vector(self):
-        if self.value == self.UP:
-            return (0,-1)
-        if self.value == self.DOWN:
-            return (0,1)
-        if self.value == self.LEFT:
-            return (-1,0)            
-        if self.value == self.RIGHT:
-            return (1,0)
-            
+        return self.vec[self.value]
 
 class Animation:
     '''Handle a linear animation of a given value.'''

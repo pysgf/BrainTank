@@ -21,36 +21,16 @@
 ###############################################################################
 
 import sys
-from utils import Facing
+from utils import Facing, Symbol
 
 class Brain:
     '''The Brain is your primary interface to write a custom tank AI.'''
-    
-    UP = Facing.UP
-    DOWN = Facing.DOWN
-    LEFT = Facing.LEFT
-    RIGHT = Facing.RIGHT
-    FORWARD = 10
-    BACKWARD = 11
-    SHOOT = 12
-    
-    command_to_str = {
-        Facing.UP: 'UP',
-        Facing.DOWN: 'DOWN',
-        Facing.LEFT: 'LEFT',
-        Facing.RIGHT: 'RIGHT',
-        10: 'FORWARD',
-        11: 'BACKWARD',
-        12: 'SHOOT'
-    }
-    
+        
     def __init__(self, tank):
         self.tank = tank
         self.tank.brain = self
         
         self.memory = []
-        
-        self.setup()
 
     def detach(self):
         '''Detach brain in preparation for attaching a new one.'''
@@ -68,49 +48,27 @@ class Brain:
         else:
             return None
         
-    def set_facing(self, facing):
+    def face(self, facing):
         '''Queue the command to change to a certain facing.'''
-        if facing is Facing.UP:
-            self.face_up()
-        elif facing is Facing.DOWN:
-            self.face_down()
-        elif facing is Facing.RIGHT:
-            self.face_right()
-        elif facing is Facing.LEFT:
-            self.face_left()
+        if facing in (Symbol.UP, Symbol.DOWN, Symbol.LEFT, Symbol.RIGHT):
+            self.memory.append(facing)
         else:
             raise Exception('brain malfunction')
         
-    def face_up(self):
-        '''Queue the command to change facing to up.'''
-        self.memory.append(self.UP)
-        
-    def face_down(self):
-        '''Queue the command to change facing to down.'''
-        self.memory.append(self.DOWN)
-        
-    def face_left(self):
-        '''Queue the command to change facing to the left.'''
-        self.memory.append(self.LEFT)
-        
-    def face_right(self):
-        '''Queue the command to change facing to the right.'''
-        self.memory.append(self.RIGHT)
-        
-    def move_forward(self):
+    def forward(self):
         '''Queue the command to move the tank forward.
            The direction depends on the tank's current facing.'''
-        self.memory.append(self.FORWARD)
+        self.memory.append(Symbol.FORWARD)
         
-    def move_backward(self):
+    def backward(self):
         '''Queue the command to move the tank backward.
            The direction depends on the tank's current facing.'''
-        self.memory.append(self.BACKWARD)
+        self.memory.append(Symbol.BACKWARD)
         
     def shoot(self):
         '''Queue a shoot command.
            The direction depends on the tank's current facing.'''
-        self.memory.append(self.SHOOT)
+        self.memory.append(Symbol.SHOOT)
         
     def position(self):
         '''Return the (x,y) coordinate of the tank.'''
@@ -136,16 +94,13 @@ class Brain:
         '''Destroys the tank.'''
         self.tank.kill()
         
-    def setup(self):
-        '''Sets up the brain for the round.'''
-        pass
-        
     def think(self):
         '''Implement this in your custom brain. 
            It is only called if the tank has no commands.'''
         pass
 
-def import_think(name):
+def thinker_import(name):
+    '''Import a new thinker or reload it if it exists already'''
     if name in sys.modules:
         reload(sys.modules[name])
     else:
@@ -154,45 +109,44 @@ def import_think(name):
     return sys.modules[name]
 
 
-def do_think(tank, thinker):
-    #for 
+def thinker_think(tank, thinker):
+    '''Set up globals for thinking module and run think()'''
+    brain = tank.brain
+    
+    # vars
+    thinker.color = tank.color
+    thinker.position = brain.position()
+    thinker.facing = brain.facing()
+    thinker.direction = brain.direction()
+    
+    thinker.UP = Symbol.UP
+    thinker.DOWN = Symbol.DOWN
+    thinker.LEFT = Symbol.LEFT
+    thinker.RIGHT = Symbol.RIGHT
+    
+    thinker.SYMBOL_TO_STR = {}
+    thinker.SYMBOL_TO_STR.update(Symbol.str)
+    
+    world = tank.world
+    thinker.GRASS = world.grass
+    thinker.DIRT = world.dirt
+    thinker.PLAIN = world.plain
+    thinker.WATER = world.water
+    
+    thinker.SAFE_TILES = world.safe
+    thinker.UNSAFE_TILES = world.unsafe
+    
+    thinker.ROCK = world.rock
+    thinker.TREE = world.tree
+    
+    # functions
+    thinker.forget = brain.forget
+    thinker.face = brain.face
+    thinker.forward = brain.forward
+    thinker.backward = brain.backward
+    thinker.shoot = brain.shoot
+    thinker.radar = brain.radar
+    thinker.kill = brain.kill
+    
+    # start a think cycle
     thinker.think()
-
-        
-        
-import random
-        
-class DumbBrain(Brain):
-    def setup(self):
-        pass
-
-    def think(self):
-        self.forget() # clear old commands 
-        
-        color = self.tank.color()
-            
-        x,y = self.position()
-        face = self.facing()
-        dx, dy = self.direction()
-        
-        target = self.radar(x + dx, y + dy)
-        print color, "at", x, y, "and facing", Facing.facing_to_str[face]
-        print color, "will be moving into:", target
-
-        def new_facing():
-            # out of all facing possibilities, choose one we don't have currently
-            new_facing = [Facing.UP, Facing.DOWN, Facing.LEFT, Facing.RIGHT]
-            new_facing.remove(face)
-            return random.choice(new_facing)
-        
-        # avoid moving into blocking items
-        if target[1] is not None or target[0] is self.tank.world.water or target[0] is None:
-            self.set_facing(new_facing())
-        elif random.randint(0,5) == 0:
-            # 1 out of 5 times choose a new direction
-            self.set_facing(new_facing())
-        
-        self.move_forward()
-        
-        queue = ', '.join([self.command_to_str[x] for x in self.memory])
-        print color,"brain queue:", queue
