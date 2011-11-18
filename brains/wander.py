@@ -76,9 +76,16 @@ def think():
         # out of all facing possibilities, choose one we don't have currently
         new_facing = [UP, DOWN, LEFT, RIGHT]
         new_facing.remove(facing)
+        
+        # evaluate the possible facings and remove ones that will block tank
         good_facing = []
+        for f in new_facing:
+            v = FACING_TO_VEC[f]
+            nt, ni = radar(x + v[0], y + v[1])
+            if ni is None and nt not in (None, WATER):
+                good_facing.append(f)
                 
-        return random.choice(new_facing)
+        return random.choice(good_facing or new_facing)
     
     # avoid moving into blocking items
     if item is not None or tile in (WATER, None):
