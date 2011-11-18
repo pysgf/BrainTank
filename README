@@ -1,6 +1,9 @@
 This is a little project to teach programming skills as well as basic AI.
 For now you can play with the DummyBrain in brain.py or implement your own.
-Import it in main.py and hook it up to BRAIN1 or BRAIN2 to run it.
+
+How to make brains:
+Copy brains/wander.py to brains/yourname.py and add "yourname" it to config.py.
+For now it will only read the first two brains listed...
 
 TODO:
 add tank weapons / damage
