@@ -1,7 +1,7 @@
 # Brain Tank
 ## Summary
 This is a little project to teach programming skills as well as basic AI.
-For now you can play with the DummyBrain in brain.py or implement your own.
+To run it just execute main.py with python.
 
 ## Simulation Rules
 Every time a trank becomes "idle" it will run the `think()` function associated
