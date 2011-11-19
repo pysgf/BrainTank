@@ -27,15 +27,15 @@ The shots move at twice the speed of a tank.
   2. Add GUI elements like victory screen, etc.
 
 ## Requirements
-  * [Python 2.7+][http://www.python.org/]
-  * [Pyglet][http://pyglet.org/]
-    * Windows users should use [pip][http://www.pip-installer.org/] to install
-    * OSX users should use [this fork][http://code.google.com/r/evilphillip-cocoa-ctypes/]
+  * [Python 2.7+](http://www.python.org/)
+  * [Pyglet](http://pyglet.org/)
+    * Windows users should use [pip](http://www.pip-installer.org/) to install.
+    * OSX users should use [this fork](http://code.google.com/r/evilphillip-cocoa-ctypes/)
 
 ## Licensing
 The code is GPLv3, but the art is not.
 
 ### Attribution
-  * The Planet Cute sprites are from the venerable Danc. Check out his [site][http://www.lostgarden.com].
-  * The tank is by Saypen on [Open Game Art][http://opengameart.org/content/american-tank].
+  * The Planet Cute sprites are from the venerable Danc. Check out his [site](http://www.lostgarden.com).
+  * The tank is by Saypen on [Open Game Art](http://opengameart.org/content/american-tank).
   * Everything else I've made and is in the public domain.
