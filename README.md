@@ -9,17 +9,18 @@ For now it will only read the first two brains listed...
 
 ## Simulation Rules
 Every time a trank becomes "idle" it will run the `think()` function associated
-with that brain to queue up more commands. The tank then executes these, 
-which can take a variable amount of time.
+with that brain to queue up more commands. 
+The tank then executes these,which can take a variable amount of time.
 Tanks can also fire shots in the direction they are facing. 
-They must turn to aim.  The shots move at twice the speed of a tank.
+They must turn to aim. 
+Turning one facing takes half a second, turning twice takes one second.
+The shots move at twice the speed of a tank.
 
 ### Tile Rules
-  * Crossing dirt will take twice as long as regular tiles.
+  * Crossing __dirt__ will take twice as long as regular tiles.
   * The tank will abort a move if it runs into a blocking tile or other tank.
-  * Turning one facing takes half a second, turning twice takes one second.
-  * Shots can destroy blocking tiles such as trees or rocks.
-  * Driving into water will destroy the tank.
+  * Shots can destroy blocking tiles such as __trees__ or __rocks__.
+  * Driving into __water__ will destroy the tank.
 
 ## TODO
   1. Add explosions and other animations.
