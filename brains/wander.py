@@ -48,11 +48,13 @@ Symbols:
     
 Tiles:
     GRASS, DIRT, PLAIN, WATER
-    SAFE_TILES = (GRASS, DIRT, PLAIN)
-    UNSAFE_TILES = (WATER,)
+    SAFE_TILES = (GRASS, DIRT, PLAIN) - can be driven on safely
+    UNSAFE_TILES = (WATER,) - will destroy your tank if you drive into them
 
 Items:
-    ROCK, TREE
+    ROCK, TREE - blocking items that can be destroyed
+    TANKS - other tanks in map
+    TANK_POSITIONS - [(x,y)] other tank positions
     
 Lookup Helper Dictionaries:
     SYMBOL_TO_STR - takes a symbol and returns a string

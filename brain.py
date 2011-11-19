@@ -88,8 +88,10 @@ class Brain:
         '''Return the tile information for a given coordinate.
            Returns (terrain, item). If no terrain or item, it uses None.
            See the World docs for some terrain types.'''
-        return self.tank.world.get_tile(x, y)
-       
+        ss = self.tank.world.symbol_to_safe
+        tile, item = self.tank.world.get_tile(x, y)
+        return (ss.get(tile), ss.get(item))
+        
     def kill(self):
         '''Destroys the tank.'''
         self.tank.kill()
@@ -130,16 +132,22 @@ def thinker_think(tank, thinker):
     thinker.FACING_TO_VEC.update(Facing.vec)
     
     world = tank.world
-    thinker.GRASS = world.grass
-    thinker.DIRT = world.dirt
-    thinker.PLAIN = world.plain
-    thinker.WATER = world.water
+    ss = world.symbol_to_safe
     
-    thinker.SAFE_TILES = world.safe
-    thinker.UNSAFE_TILES = world.unsafe
+    thinker.GRASS = ss[world.grass]
+    thinker.DIRT = ss[world.dirt]
+    thinker.PLAIN = ss[world.plain]
+    thinker.WATER = ss[world.water]
     
-    thinker.ROCK = world.rock
-    thinker.TREE = world.tree
+    thinker.SAFE_TILES = [ss[x] for x in world.safe]
+    thinker.UNSAFE_TILES = [ss[x] for x in world.unsafe]
+    
+    thinker.ROCK = ss[world.rock]
+    thinker.TREE = ss[world.tree]
+    
+    thinker.TANKS = [ss[x] for x in world.tanks]
+    thinker.TANK_POSITIONS = [x.get_position() for x in world.tanks 
+                              if x is not tank]
     
     # functions
     thinker.memory = lambda: brain.memory[:]

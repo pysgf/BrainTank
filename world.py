@@ -52,6 +52,7 @@ class World:
         self.rand = random.Random()
         self.rand.seed(seed)
         
+        self.symbol_to_safe = {}
         self.bullets = []
         self.explosions = []
         self.game_over = False
@@ -91,6 +92,8 @@ class World:
         self.unsafe = (self.water,)
         self.blocking = (self.wall,)
         
+        self.tiles = self.safe + self.unsafe + self.blocking
+        
         self.spawn = load('Selector')
         self.rock = load('Rock')
         self.tree = load('Tree Tall')
@@ -101,6 +104,8 @@ class World:
         self.destructible = (self.rock, self.tree)
         
         self.blocking_item = (self.rock,self.tree,self.bush)
+        
+        self.items = self.destructible
         
         self.tile_height = 171
         self.tile_width = 101
@@ -144,6 +149,12 @@ class World:
         self.__set_tile(s1, (self.plain, red_tank))
         self.__set_tile(s2, (self.plain, blue_tank))
         self.tanks = (red_tank, blue_tank)
+        
+        
+        symbols = self.tanks + self.items + self.tiles
+        self.symbol_to_safe.update({
+            x:y for x,y in zip(symbols, range(len(symbols)))
+        })
         
     def __set_tile(self, pos, data):
         #print "setting", pos, data
