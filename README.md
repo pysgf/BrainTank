@@ -33,7 +33,8 @@ available for brains to use in wander.py.
   * [Python 2.7+](http://www.python.org/)
   * [Pyglet](http://pyglet.org/)
     * Windows users should use [pip](http://www.pip-installer.org/) to install.
-    * OSX users should use [this fork](http://code.google.com/r/evilphillip-cocoa-ctypes/)
+    * OSX users should use [this fork](http://code.google.com/r/evilphillip-cocoa-ctypes/) or 
+      just run `pip install https://github.com/downloads/mathom/BrainTank/pyglet-evilphillip-cocoa-ctypes.tar.bz2` if you have pip
 
 ## Licensing
 The code is GPLv3, but the art is not.
