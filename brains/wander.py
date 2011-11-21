@@ -32,6 +32,9 @@ Variables available to brains:
     position - tuple (x,y), current tank grid position
     facing - symbol UP, DOWN, LEFT, RIGHT, current tank facing
     direction - tuple (x,y), unit vector representing tank facing
+    shots - how many shots have been fired
+    tanks - other tanks in map
+    tank_positions - [(x,y)] other tank positions
 
 Functions available to brains:
     memory() - returns [symbol], a read only copy of queued commands
@@ -53,8 +56,6 @@ Tiles:
 
 Items:
     ROCK, TREE - blocking items that can be destroyed
-    TANKS - other tanks in map
-    TANK_POSITIONS - [(x,y)] other tank positions
     
 Lookup Helper Dictionaries:
     SYMBOL_TO_STR - takes a symbol and returns a string

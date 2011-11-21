@@ -99,6 +99,7 @@ class Tank:
         self.brain = Brain(self)
         self.world = world
         self.bullet = None
+        self.shots = 0
         
         # speed is per second
         self.speed = 100 
@@ -243,6 +244,7 @@ class Tank:
             return
     
         if self.state is self.SHOOTING:
+            self.shots += 1
             self.bullet = Bullet(self)
             self.world.add_bullet(self.bullet)
             self.state = self.IDLE

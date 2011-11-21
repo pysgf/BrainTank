@@ -116,6 +116,7 @@ def thinker_think(tank, thinker):
     thinker.position = brain.position()
     thinker.facing = brain.facing()
     thinker.direction = brain.direction()
+    thinker.shots = tank.shots
     
     thinker.UP = Symbol.UP
     thinker.DOWN = Symbol.DOWN
@@ -145,8 +146,8 @@ def thinker_think(tank, thinker):
     thinker.ROCK = ss[world.rock]
     thinker.TREE = ss[world.tree]
     
-    thinker.TANKS = [ss[x] for x in world.tanks]
-    thinker.TANK_POSITIONS = [x.get_position() for x in world.tanks 
+    thinker.tanks = [ss[x] for x in world.tanks]
+    thinker.tank_positions = [x.get_position() for x in world.tanks 
                               if x is not tank]
     
     # functions
