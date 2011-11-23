@@ -95,6 +95,7 @@ class Tank:
         self.offset = (0,0)
         
         self.state = self.IDLE
+        self.driving_forward = True
         self.animation = None
         self.brain = Brain(self)
         self.world = world
@@ -194,11 +195,13 @@ class Tank:
             if command in (Symbol.FORWARD, Symbol.BACKWARD):
                 self.state = self.MOVING
                 self.offset_dt = self.facing.to_vector()
-                
+
+                self.driving_forward = (command is Symbol.FORWARD)
+
                 end = self.world.tile_size[0]
                 if self.facing.value in (Symbol.DOWN, Symbol.UP):
                     end = self.world.tile_size[1]
-                    
+
                 self.animation = Animation(0, abs(end), 1.0)
              
             if command in (Symbol.UP, Symbol.DOWN, Symbol.LEFT, Symbol.RIGHT):
@@ -256,17 +259,19 @@ class Tank:
             anim = self.animation
             world = self.world
             
+            sign = 1 if self.driving_forward else -1
+
             if anim.done: # done moving, warp to final destination
                # set up a warp
-               self.warp_x = self.x + dt[0]
-               self.warp_y = self.y + dt[1]
+               self.warp_x = self.x + dt[0]*sign
+               self.warp_y = self.y + dt[1]*sign
 
                world.warp(self)
                self.set_position(self.warp_x, self.warp_y)
                self.stop()
                
             else: # still moving
-                target = world.get_tile(self.x+dt[0], self.y+dt[1])
+                target = world.get_tile(self.x+dt[0]*sign, self.y+dt[1]*sign)
                 current = world.get_tile(self.x, self.y)
                 
                 # look for blocking items
@@ -299,8 +304,8 @@ class Tank:
                     anim.speed = self.reduced_speed
                     jitter = (ri(-1,1),ri(0,2))
                 
-                self.offset = (dt[0]*anim.value+jitter[0], 
-                               -dt[1]*anim.value+jitter[1])      
+                self.offset = (dt[0]*anim.value*sign+jitter[0], 
+                               -dt[1]*anim.value*sign+jitter[1])      
 
             
     def is_idle(self):
