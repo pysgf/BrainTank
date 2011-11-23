@@ -67,7 +67,7 @@ import random
 
 
 def turn_around():
-    '''Turn 180 degress around'''
+    '''Turn 180 degress around. New by Phil.'''
     if facing is UP:
         face(DOWN)
     elif facing is DOWN:
