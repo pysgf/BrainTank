@@ -25,13 +25,13 @@ from pyglet.window import key
 import pyglet.gl as gl
 import os, random
 from tank import Tank
-from utils import Facing, Symbol
+from symbols import Facing, Tile, Item
 
 
 class VoidKill(Exception):
     pass
 
-class Tile:
+class Drawable:
     def __init__(self, name, filename):
         self.name = name
         self.img = pyglet.resource.image(filename)
@@ -40,7 +40,7 @@ class Tile:
         self.img.blit(*args, **kwargs)
         
     def __repr__(self):
-        return "Tile(%s)" % self.name
+        return "Drawable(%s)" % self.name
     
     
 class World:
@@ -52,10 +52,12 @@ class World:
         self.rand = random.Random()
         self.rand.seed(seed)
         
-        self.symbol_to_safe = {}
         self.bullets = []
         self.explosions = []
         self.game_over = False
+        
+        self.TILE_TO_ENUM = {}
+        self.ITEM_TO_ENUM = {}
         
         self.load_resources()
         self.generate_map()
@@ -77,37 +79,43 @@ class World:
         
         return self.__map[y][x]
         
+    def get_tile_enum(self, x, y):
+        '''Returns a (tile, item) tuple in enum form.
+            tile will be a value from symbols.Tile
+            item will be a value from symbols.Item'''
+        
+        tile, item = self.get_tile(x,y)
+        return self.TILE_TO_ENUM[tile], self.ITEM_TO_ENUM[item]
+        
     def load_resources(self):
 
         def load(name):
             pack = "PlanetCute PNG"
-            return Tile(name, '%s/%s.png' % (pack, name))
+            return Drawable(name, '%s/%s.png' % (pack, name))
             
         self.grass = load('Grass Block')
         self.dirt = load('Dirt Block')
-        self.wall = load('Stone Block Tall')
-        self.brown = load('Brown Block')
+        #self.wall = load('Stone Block Tall')
+        #self.brown = load('Brown Block')
         self.plain = load('Plain Block')
         self.water = load('Water Block')
         
-        self.safe = (self.dirt, self.grass, self.brown, self.plain)
+        self.safe = (self.dirt, self.grass, self.plain)
         self.unsafe = (self.water,)
-        self.blocking = (self.wall,)
         
-        self.tiles = self.safe + self.unsafe + self.blocking
+        self.tiles = self.safe + self.unsafe
+        self.blocking_tiles = []
         
-        self.spawn = load('Selector')
+        #self.spawn = load('Selector')
         self.rock = load('Rock')
         self.tree = load('Tree Tall')
-        self.bush = load('Tree Short')
-        self.heart = load('Heart')
-        self.gem = load('Gem Blue')
+        #self.bush = load('Tree Short')
+        #self.heart = load('Heart')
+        #self.gem = load('Gem Blue')
         
-        self.destructible = (self.rock, self.tree)
-        
-        self.blocking_item = (self.rock,self.tree,self.bush)
-        
-        self.items = self.destructible
+        self.items = (self.rock, self.tree)
+        self.blocking_items = self.items
+        self.destructible = self.items
         
         self.tile_height = 171
         self.tile_width = 101
@@ -119,7 +127,7 @@ class World:
         self.start_y = (self.height-1) * -self.tile_size[1]
        
         try:
-            self.main_music = pyglet.resource.media(os.path.join('Sounds', 'xmasmyth.mp3'))
+            self.main_music = pyglet.resource.media('Sounds/xmasmyth.mp3')
             self.has_sound = True
         except pyglet.media.riff.WAVEFormatException:
             self.has_sound = False
@@ -134,8 +142,8 @@ class World:
             return [i for sublist in [[x]*y for x,y in pairs] for i in sublist]
         
         # spawn lists
-        terrain = distmap(((self.grass, 20), (self.dirt, 5), (self.wall, 0), (self.water, 1)))
-        items = distmap(((None, 20), (self.rock,3), (self.tree,3)))
+        terrain = distmap(((self.grass, 20), (self.dirt, 5), (self.water, 1)))
+        items = distmap(((None, 20), (self.rock,2), (self.tree,2)))
 
         # generate actual map
         r = self.rand
@@ -149,8 +157,8 @@ class World:
                 row[i] = (tile, item)
                 
         # clear spawn points
-        s1 = (0, 0, Symbol.RIGHT)
-        s2 = (self.width-1, self.height-1, Symbol.LEFT)
+        s1 = (0, 0, Facing.RIGHT)
+        s2 = (self.width-1, self.height-1, Facing.LEFT)
         if r.randint(0,1):
             s1, s2 = s2, s1
         
@@ -161,10 +169,21 @@ class World:
         self.__set_tile(s2, (self.plain, blue_tank))
         self.tanks = (red_tank, blue_tank)
         
+        self.ITEM_TO_ENUM.update({
+            None:      None,
+            self.rock: Item.ROCK,
+            self.tree: Item.TREE,
+        })
+        self.ITEM_TO_ENUM.update({
+            x: x.color.upper() for x in self.tanks
+        })
         
-        symbols = self.tanks + self.items + self.tiles
-        self.symbol_to_safe.update({
-            x:y for x,y in zip(symbols, range(len(symbols)))
+        self.TILE_TO_ENUM.update({
+            None:       None,
+            self.grass: Tile.GRASS,
+            self.dirt:  Tile.DIRT,
+            self.plain: Tile.PLAIN,
+            self.water: Tile.WATER,
         })
         
     def __set_tile(self, pos, data):
@@ -276,6 +295,7 @@ class World:
                     #print "checking", tank.color, "against", bullet.tank.color, "'s bullet"
                     if bullet.tank is not tank and bullet.rect().touches(trect):
                         tank.kill()
+                        self.detonate(tank)
 
     def detonate(self, thing, pos=None):
         '''Detonate (destroy) an object on the map, optionally clearing the item at pos'''

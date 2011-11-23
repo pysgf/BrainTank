@@ -33,8 +33,9 @@ Variables available to brains:
     facing - symbol UP, DOWN, LEFT, RIGHT, current tank facing
     direction - tuple (x,y), unit vector representing tank facing
     shots - how many shots have been fired
-    tanks - other tanks in map
+    tanks - list of other tanks in map
     tank_positions - [(x,y)] other tank positions
+    tank_states - list of other tank states (see Tank States)
 
 Functions available to brains:
     memory() - returns [symbol], a read only copy of queued commands
@@ -46,8 +47,14 @@ Functions available to brains:
     radar(x,y) - get a tuple (tile, item) from the map's x,y coordinate
     kill() - self destruct tank
 
-Symbols:
-    UP, DOWN, LEFT, RIGHT, FORWARD, BACKWARD, SHOOT
+Facings:
+    UP, DOWN, LEFT, RIGHT, 
+    
+Brain Commands:
+    FORWARD, BACKWARD, SHOOT
+    
+Tank States:
+    IDLE, MOVING, TURNING, SHOOTING, DEAD
     
 Tiles:
     GRASS, DIRT, PLAIN, WATER
@@ -56,9 +63,9 @@ Tiles:
 
 Items:
     ROCK, TREE - blocking items that can be destroyed
+    TANK_BLUE, TANK_RED - tanks located on a tile
     
 Lookup Helper Dictionaries:
-    SYMBOL_TO_STR - takes a symbol and returns a string
     FACING_TO_VEC - takes a facing symbol and returns the (x,y) unit vector
     
 '''
@@ -72,7 +79,7 @@ def think():
     dx, dy = direction
     
     tile, item = radar(x + dx, y + dy)
-    print "at", x, y, "and facing", SYMBOL_TO_STR[facing]
+    print "at", x, y, "and facing", facing
     print "will be moving into:", tile, item
 
     def new_facing():
@@ -98,13 +105,12 @@ def think():
         # 1 out of 5 times choose a new direction
         face(new_facing())
     
-    if FORWARD not in memory():
+    if FORWARD not in memory:
         forward()
     
     if random.randint(0,3) == 0:
         # 1 out of 3 times try to shoot
         shoot()
     
-    queue = ', '.join([SYMBOL_TO_STR[x] for x in memory()])
-    print "brain queue:", queue
+    print "brain queue:", memory
 

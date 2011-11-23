@@ -24,8 +24,9 @@ import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
 import os, random
-from utils import Animation, Facing, Symbol, Rect
+from utils import Animation, Rect
 from brain import Brain
+from symbols import Command, TankState, Facing, FACING_TO_VEC
 
 class Bullet:
     '''Represents a moving bullet with facing'''
@@ -34,10 +35,9 @@ class Bullet:
         self.tank = tank
         self.speed = 200
 
-        self.facing = Facing(tank.get_facing())
-        fv = self.tank.facing.value
+        self.facing = tank.get_facing()
         
-        self.img = tank.bullet_facing_img[fv]
+        self.img = tank.bullet_facing_img[self.facing]
         self.hw = self.img.width * 0.5
         self.hh = self.img.height * 0.5
        
@@ -46,15 +46,15 @@ class Bullet:
 
         ts = tank.world.tile_size
         
-        if fv is Symbol.UP:
+        if self.facing is Facing.UP:
             self.x += ts[0] * 0.5
             self.y -= ts[1] * 0.5
-        elif fv is Symbol.DOWN:
+        elif self.facing is Facing.DOWN:
             self.x += ts[0] * 0.5
             self.y += ts[1] * 0.5
-        elif fv is Symbol.RIGHT:
+        elif self.facing is Facing.RIGHT:
             self.x += ts[0] 
-        elif fv is Symbol.LEFT:
+        elif self.facing is Facing.LEFT:
             pass
             
     def __repr__(self):
@@ -73,28 +73,23 @@ class Bullet:
         
     def update(self, dt):
         step = self.speed * dt
-        dx, dy = self.facing.to_vector()
+        dx, dy = FACING_TO_VEC[self.facing]
         self.x += dx * step
         self.y -= dy * step
         
             
 class Tank:
     '''Draws and handles tank actions.'''
-
-    IDLE, MOVING, TURNING, SHOOTING, DEAD = range(5)
-    state_str = dict(zip(range(5),
-        ('IDLE', 'MOVING', 'TURNING', 'SHOOTING', 'DEAD')
-    ))
     
     def __init__(self, world, x, y, facing, color):
         self.set_position(x,y)
-        self.facing = Facing(facing)
+        self.facing = facing
         self.color = color
 
         self.offset_dt = (0,0)
         self.offset = (0,0)
         
-        self.state = self.IDLE
+        self.state = TankState.IDLE
         self.driving_forward = True
         self.animation = None
         self.brain = Brain(self)
@@ -123,11 +118,11 @@ class Tank:
 
     def get_facing(self):
         '''Returns the facing as Facing.LEFT, Facing.RIGHT, etc'''
-        return self.facing.value
+        return self.facing
 
     def get_facing_vector(self):
         '''Returns the facing as (dx,dy)'''
-        return self.facing.to_vector()
+        return FACING_TO_VEC[self.facing]
         
     def get_position(self):
         '''Returns position (x,y) as a tuple'''
@@ -160,100 +155,95 @@ class Tank:
         img.anchor_x = img.width * 0.5
         img.anchor_y = img.height * 0.5
         
-        rot_lookup = {
-            Symbol.UP: 0,
-            Symbol.RIGHT: 90,        
-            Symbol.DOWN: 180,
-            Symbol.LEFT: 270,
-        }
+        # lookup table for bullet facing
         self.bullet_facing_img = {
-            x: img.get_transform(rotate=rot_lookup[x])
-                for x in (Symbol.UP, Symbol.DOWN, Symbol.LEFT, Symbol.RIGHT)
+            Facing.UP:    img.get_transform(rotate=0),
+            Facing.RIGHT: img.get_transform(rotate=90),
+            Facing.DOWN:  img.get_transform(rotate=180),
+            Facing.LEFT:  img.get_transform(rotate=270),
         }
         
-        # set the images in the order of the Facing enum
-        img = self.facing_img = [None]*4
-        img[Symbol.UP] = self.up
-        img[Symbol.DOWN] = self.down
-        img[Symbol.LEFT] = self.left
-        img[Symbol.RIGHT] = self.right
+        # lookup table for tank facing
+        self.tank_facing_img = {
+            Facing.UP:    self.up,
+            Facing.RIGHT: self.right,
+            Facing.DOWN:  self.down,
+            Facing.LEFT:  self.left,
+        }
        
     def blit(self, x, y, z):
         x += self.offset[0]
         y += self.offset[1]
-        self.facing_img[self.facing.value].blit(x, y, z)
+        self.tank_facing_img[self.facing].blit(x, y, z)
         #self.rect().debug_draw()
     
     def read_command(self):
         '''Pop a command from the brain memory and interpret it'''
         if self.brain:
             command = self.brain.pop()
-            if command in Symbol.vals:
-                #print self.color, 'executing', Symbol.str[command]
-                pass
             
-            if command in (Symbol.FORWARD, Symbol.BACKWARD):
-                self.state = self.MOVING
-                self.offset_dt = self.facing.to_vector()
+            if command in (Command.FORWARD, Command.BACKWARD):
+                self.state = TankState.MOVING
+                self.offset_dt = FACING_TO_VEC[self.facing]
 
-                self.driving_forward = (command is Symbol.FORWARD)
+                self.driving_forward = (command is Command.FORWARD)
 
                 end = self.world.tile_size[0]
-                if self.facing.value in (Symbol.DOWN, Symbol.UP):
+                if self.facing in (Facing.DOWN, Facing.UP):
                     end = self.world.tile_size[1]
 
                 self.animation = Animation(0, abs(end), 1.0)
              
-            if command in (Symbol.UP, Symbol.DOWN, Symbol.LEFT, Symbol.RIGHT):
-                self.state = self.TURNING
+            if command in (Facing.UP, Facing.DOWN, Facing.LEFT, Facing.RIGHT):
+                self.state = TankState.TURNING
                 self.turn_to = command # bleh
                 
                 time_to_turn = 1.0
-                if command in (Symbol.UP, Symbol.DOWN):
-                    if self.facing.value in (Symbol.LEFT, Symbol.RIGHT):
+                if command in (Facing.UP, Facing.DOWN):
+                    if self.facing in (Facing.LEFT, Facing.RIGHT):
                         time_to_turn = 0.5
                         
                 else:
-                    if self.facing.value in (Symbol.UP, Symbol.DOWN):
+                    if self.facing in (Facing.UP, Facing.DOWN):
                         time_to_turn = 0.5
                         
-                if command == self.facing.value:
+                if command == self.facing:
                     time_to_turn = 0
                         
                 self.animation = Animation(0, time_to_turn, 1.0)
                 
-            if command is Symbol.SHOOT and self.bullet is None:
+            if command is Command.SHOOT and self.bullet is None:
                 #print self.color, 'is SHOOTING'
-                self.state = self.SHOOTING
+                self.state = TankState.SHOOTING
                 
     def stop(self):
         '''Stop current state and return to idle.'''
         self.offset = (0,0)
         self.animation = None
-        self.state = self.IDLE
+        self.state = TankState.IDLE
                 
     def update(self, dt):
         '''Process tank state, with respect to time'''
         if self.animation:
             self.animation.update(dt)
 
-        if self.state is self.IDLE:
+        if self.state is TankState.IDLE:
             self.read_command()            
     
-        if self.state is self.TURNING:
+        if self.state is TankState.TURNING:
             if self.animation.done:
-                self.state = self.IDLE
-                self.facing.value = self.turn_to
+                self.state = TankState.IDLE
+                self.facing = self.turn_to
             return
     
-        if self.state is self.SHOOTING:
+        if self.state is TankState.SHOOTING:
             self.shots += 1
             self.bullet = Bullet(self)
             self.world.add_bullet(self.bullet)
-            self.state = self.IDLE
+            self.state = TankState.IDLE
             return
     
-        if self.state is self.MOVING:
+        if self.state is TankState.MOVING:
             o = self.offset
             dt = self.offset_dt
             anim = self.animation
@@ -275,7 +265,7 @@ class Tank:
                 current = world.get_tile(self.x, self.y)
                 
                 # look for blocking items
-                if target[0] in world.blocking or target[1] in world.blocking_item:
+                if target[0] in world.blocking_tiles or target[1] in world.blocking_items:
                     self.stop()
                     print self.color, 'tried to drive into item, stopping'
                     return
@@ -309,12 +299,12 @@ class Tank:
 
             
     def is_idle(self):
-        return self.state == self.IDLE
+        return self.state is TankState.IDLE
         
     def kill(self):
         print "BANG! %s is dead." % self.color
         
-        self.state = self.DEAD
+        self.state = TankState.DEAD
         
         if self.brain:
             self.brain.detach()

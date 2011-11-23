@@ -20,39 +20,25 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-'''
-Phil's Brain
-
-See the wander.py file for brain docs (too hard to keep two up to date)
-'''
-
-import random
+from utils import Enum
 
 
-def turn_around():
-    '''Turn 180 degress around. New by Phil.'''
-    if facing is UP:
-        face(DOWN)
-    elif facing is DOWN:
-        face(UP)
-    elif facing is LEFT:
-        face(RIGHT)
-    elif facing is RIGHT:
-        face(LEFT)
+Command = Enum('FORWARD', 'BACKWARD', 'SHOOT')
+
+Facing = Enum('UP', 'DOWN', 'LEFT', 'RIGHT')
+
+TankState = Enum('IDLE', 'MOVING', 'TURNING', 'SHOOTING', 'DEAD')
+
+# make sure Tiles and Items match what world contains!
+
+Tile = Enum('GRASS', 'DIRT', 'WATER', 'PLAIN')
+
+Item = Enum('TREE', 'ROCK', 'TANK_RED', 'TANK_BLUE')
 
 
-def think():
-
-    x, y = position
-    dx, dy = direction
-
-    tile, item = radar(x + dx, y +dy)
-
-    print "Tank: ", color, " Tile: ",tile, " Item: ", item
-
-    if tile is None or tile is WATER or item is not None:
-        print memory
-        turn_around()
-    else:
-        forward()
-
+FACING_TO_VEC = {
+    Facing.UP:    ( 0,-1),
+    Facing.DOWN:  ( 0, 1),
+    Facing.LEFT:  (-1, 0),
+    Facing.RIGHT: ( 1, 0)
+}

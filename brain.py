@@ -21,7 +21,9 @@
 ###############################################################################
 
 import sys, traceback
-from utils import Facing, Symbol, DebugWriter
+from copy import deepcopy
+from utils import DebugWriter
+from symbols import Tile, Item, Facing, TankState, Command, FACING_TO_VEC
 
 class Brain:
     '''The Brain is your primary interface to write a custom tank AI.'''
@@ -50,7 +52,7 @@ class Brain:
         
     def face(self, facing):
         '''Queue the command to change to a certain facing.'''
-        if facing in (Symbol.UP, Symbol.DOWN, Symbol.LEFT, Symbol.RIGHT):
+        if facing in Facing.values:
             self.memory.append(facing)
         else:
             raise Exception('brain malfunction')
@@ -58,17 +60,17 @@ class Brain:
     def forward(self):
         '''Queue the command to move the tank forward.
            The direction depends on the tank's current facing.'''
-        self.memory.append(Symbol.FORWARD)
+        self.memory.append(Command.FORWARD)
         
     def backward(self):
         '''Queue the command to move the tank backward.
            The direction depends on the tank's current facing.'''
-        self.memory.append(Symbol.BACKWARD)
+        self.memory.append(Command.BACKWARD)
         
     def shoot(self):
         '''Queue a shoot command.
            The direction depends on the tank's current facing.'''
-        self.memory.append(Symbol.SHOOT)
+        self.memory.append(Command.SHOOT)
         
     def position(self):
         '''Return the (x,y) coordinate of the tank.'''
@@ -88,9 +90,7 @@ class Brain:
         '''Return the tile information for a given coordinate.
            Returns (terrain, item). If no terrain or item, it uses None.
            See the World docs for some terrain types.'''
-        ss = self.tank.world.symbol_to_safe
-        tile, item = self.tank.world.get_tile(x, y)
-        return (ss.get(tile), ss.get(item))
+        return self.tank.world.get_tile_enum(x, y)
         
     def kill(self):
         '''Destroys the tank.'''
@@ -110,48 +110,54 @@ def thinker_import(name):
 def thinker_think(tank, thinker):
     '''Set up globals for thinking module and run think()'''
     brain = tank.brain
+    world = tank.world
     
     # vars
     thinker.color = tank.color
     thinker.position = brain.position()
     thinker.facing = brain.facing()
     thinker.direction = brain.direction()
-    thinker.shots = tank.shots
+    thinker.shots_fired = tank.shots
     
-    thinker.UP = Symbol.UP
-    thinker.DOWN = Symbol.DOWN
-    thinker.LEFT = Symbol.LEFT
-    thinker.RIGHT = Symbol.RIGHT
-    thinker.SHOOT = Symbol.SHOOT
-    thinker.FORWARD = Symbol.FORWARD
-    thinker.BACKWARD = Symbol.BACKWARD
+    other_tanks = [x for x in world.tanks if x is not tank]
+    thinker.tanks = [world.ITEM_TO_ENUM[x] for x in other_tanks]
+    thinker.tank_positions = [x.get_position() for x in other_tanks]
+    thinker.tank_states = [x.state for x in other_tanks]
     
-    thinker.SYMBOL_TO_STR = {}
-    thinker.SYMBOL_TO_STR.update(Symbol.str)
+    thinker.memory = deepcopy(brain.memory)
     
-    thinker.FACING_TO_VEC = {}
-    thinker.FACING_TO_VEC.update(Facing.vec)
+    # symbols
+    thinker.UP = Facing.UP
+    thinker.DOWN = Facing.DOWN
+    thinker.LEFT = Facing.LEFT
+    thinker.RIGHT = Facing.RIGHT
+    thinker.SHOOT = Command.SHOOT
+    thinker.FORWARD = Command.FORWARD
+    thinker.BACKWARD = Command.BACKWARD
     
-    world = tank.world
-    ss = world.symbol_to_safe
+    thinker.IDLE = TankState.IDLE
+    thinker.MOVING = TankState.MOVING
+    thinker.SHOOTING = TankState.SHOOTING
+    thinker.TURNING = TankState.TURNING
+    thinker.DEAD = TankState.DEAD
     
-    thinker.GRASS = ss[world.grass]
-    thinker.DIRT = ss[world.dirt]
-    thinker.PLAIN = ss[world.plain]
-    thinker.WATER = ss[world.water]
+    thinker.GRASS = Tile.GRASS
+    thinker.DIRT = Tile.DIRT
+    thinker.PLAIN = Tile.PLAIN
+    thinker.WATER = Tile.WATER
     
-    thinker.SAFE_TILES = [ss[x] for x in world.safe]
-    thinker.UNSAFE_TILES = [ss[x] for x in world.unsafe]
+    thinker.SAFE_TILES = [world.TILE_TO_ENUM[x] for x in world.safe]
+    thinker.UNSAFE_TILES = [world.TILE_TO_ENUM[x] for x in world.unsafe]
     
-    thinker.ROCK = ss[world.rock]
-    thinker.TREE = ss[world.tree]
+    thinker.ROCK = Item.ROCK
+    thinker.TREE = Item.TREE
     
-    thinker.tanks = [ss[x] for x in world.tanks]
-    thinker.tank_positions = [x.get_position() for x in world.tanks 
-                              if x is not tank]
+    # lookup tables
+    thinker.FACING_TO_VEC = {
+        x: FACING_TO_VEC[x] for x in Facing.values
+    }
     
     # functions
-    thinker.memory = lambda: brain.memory[:]
     thinker.forget = brain.forget
     thinker.face = brain.face
     thinker.forward = brain.forward

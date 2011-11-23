@@ -62,18 +62,10 @@ class Game(pyglet.window.Window):
 
     def update_closure(self):
         def update(dt):
-            game_over = False
-
             for tank, thinker in zip(self.world.tanks, self.thinkers):
-                if tank.brain:
-                    try:
-                        if tank.is_idle():
-                            thinker_think(tank, thinker)
-                    except Exception as e:
-                        raise e
-                        #tank.brain.kill()
-                        #traceback.print_exc()
-
+                # only think on tanks that aren't doing anything
+                if tank.brain and tank.is_idle():
+                    thinker_think(tank, thinker)
             self.world.update(dt)
                 
         return update

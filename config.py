@@ -23,4 +23,4 @@
 # put your custom thinkers here!
 # for now only the first two are loaded...
 
-THINKERS = ('wander', 'wander')
+THINKERS = ('wander', 'phil')

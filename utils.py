@@ -22,17 +22,22 @@
 
 import sys, time
 
-class Symbol:
-    '''Symbols used in Facing and Brain'''
+class Enum(object):
+    '''Crappy enum emulator'''
     
-    # pretty gross...
-    UP, DOWN, LEFT, RIGHT, FORWARD, BACKWARD, SHOOT, DROP = range(8)
-    str = dict(zip(range(8),
-        ('UP', 'DOWN', 'LEFT', 'RIGHT', 'FORWARD', 'BACKWARD', 'SHOOT', 'DROP'),
-    ))
-
-    vals = set(range(8))
-
+    class Item(object):
+        def __init__(self, name):
+            self.__name = str(name)
+        
+        def __repr__(self):
+            return self.__name
+    
+    def __init__(self, *args):
+        self.values = []
+        for name in args:
+            item = Enum.Item(name)
+            setattr(self, name, item)
+            self.values.append(item)
     
 class Rect:
     def __init__(self, x, y, w, h):
@@ -64,26 +69,6 @@ class Rect:
             ('c3B', (255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0))
         )
         vertex_list.draw(gl.GL_LINE_LOOP)
-        
-    
-class Facing:
-    '''Handles 4 way facing and conversion to vectors'''
-
-    vec = {
-        Symbol.UP:    ( 0,-1),
-        Symbol.DOWN:  ( 0, 1),
-        Symbol.LEFT:  (-1, 0),
-        Symbol.RIGHT: ( 1, 0)
-    }
-    
-    def __init__(self, facing=0):
-        self.value = facing
-
-    def __repr__(self):
-        return "Facing(%s)" % Symbol.str[self.value]
-     
-    def to_vector(self):
-        return self.vec[self.value]
 
         
 class Animation:
