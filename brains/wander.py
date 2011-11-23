@@ -72,8 +72,8 @@ def think():
     dx, dy = direction
     
     tile, item = radar(x + dx, y + dy)
-    print color, "at", x, y, "and facing", SYMBOL_TO_STR[facing]
-    print color, "will be moving into:", tile, item
+    print "at", x, y, "and facing", SYMBOL_TO_STR[facing]
+    print "will be moving into:", tile, item
 
     def new_facing():
         # out of all facing possibilities, choose one we don't have currently
@@ -106,4 +106,5 @@ def think():
         shoot()
     
     queue = ', '.join([SYMBOL_TO_STR[x] for x in memory()])
-    print color,"brain queue:", queue
+    print "brain queue:", queue
+
