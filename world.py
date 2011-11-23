@@ -59,6 +59,8 @@ class World:
         
         self.load_resources()
         self.generate_map()
+        if self.has_sound:
+            self.play_music()
         
     def get_tile(self, x, y):
         '''Returns a (tile, item) tuple.
@@ -116,6 +118,15 @@ class World:
         self.start_x = 0
         self.start_y = (self.height-1) * -self.tile_size[1]
        
+        try:
+            self.main_music = pyglet.resource.media(os.path.join('Sounds', 'xmasmyth.mp3'))
+            self.has_sound = True
+        except pyglet.media.riff.WAVEFormatException:
+            self.has_sound = False
+
+    def play_music(self):
+        self.main_music.play()
+
     def generate_map(self):
         self.__map = [[(self.grass, None)]*self.width for x in range(self.height)]
         
