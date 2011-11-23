@@ -30,7 +30,7 @@ available for brains to use in wander.py.
   3. Add GUI elements like victory screen, etc.
 
 ## Requirements
-  * [Python 2.7+](http://www.python.org/)
+  * [Python 2.7+](http://www.python.org/) - does NOT run on Python 3.
   * [Pyglet](http://pyglet.org/)
     * Windows users should use [pip](http://www.pip-installer.org/) to install.
     * OSX users should use [this fork](http://code.google.com/r/evilphillip-cocoa-ctypes/) 
