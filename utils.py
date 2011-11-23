@@ -20,6 +20,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
+import sys, time
+
 class Symbol:
     '''Symbols used in Facing and Brain'''
     
@@ -105,3 +107,23 @@ class Animation:
                 
     def __str__(self):
         return "Animation at %.2f of %.2f (+%.2f)" % (self.value, self.stop, self.speed)            
+
+
+class DebugWriter:
+    def __init__(self, label):
+        self.label = label
+        self.sink = sys.__stdout__
+        self.newline = True
+
+    def write(self, msg):
+        if self.newline:
+            s = "%5s [%4.4f]: %s" % (self.label, time.clock(), msg)
+            self.newline = False
+        else:
+            s = "%s" % msg
+
+        if msg.find('\n') != -1:
+            self.newline = True
+
+        self.sink.write(s)
+

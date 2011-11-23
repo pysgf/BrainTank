@@ -20,8 +20,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 
-import sys
-from utils import Facing, Symbol
+import sys, traceback
+from utils import Facing, Symbol, DebugWriter
 
 class Brain:
     '''The Brain is your primary interface to write a custom tank AI.'''
@@ -159,6 +159,17 @@ def thinker_think(tank, thinker):
     thinker.shoot = brain.shoot
     thinker.radar = brain.radar
     thinker.kill = brain.kill
+
+    sys.stdout = DebugWriter(tank.color)
     
     # start a think cycle
-    thinker.think()
+    try:
+        thinker.think()
+    except Exception as e:
+        print 'Fatal brain error:'
+        sys.stdout = sys.__stdout__
+        traceback.print_exc()
+        tank.kill()
+
+    sys.stdout = sys.__stdout__
+
