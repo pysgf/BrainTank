@@ -113,8 +113,8 @@ class Tank:
         '''Returns a Rect suitable for collision'''
         x,y = self.world.world_to_screen(self.x, self.y)
         x += self.offset[0]
-        y += self.offset[1] + self.world.half_stack
-        return Rect(x, y, self.world.tile_size[0], self.world.tile_size[1])
+        y += self.offset[1] - self.world.half_stack
+        return Rect(x, y, self.world.tile_size[0], -self.world.tile_size[1])
 
     def get_facing(self):
         '''Returns the facing as Facing.LEFT, Facing.RIGHT, etc'''

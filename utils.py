@@ -47,17 +47,19 @@ class Rect:
         self.h = h
         
     def touches(self, o):
-        # important: y is inverted in our projection...
         if o.x + o.w < self.x:
             return False
-        if o.y + o.h > self.y:
+        if o.y + o.h < self.y:
             return False
         if o.x > self.x + self.w:
             return False
-        if o.y < self.y + self.h:
+        if o.y > self.y + self.h:
             return False
             
         return True
+        
+    def __repr__(self):
+        return "Rect(%s, %s, %s, %s)" % (self.x, self.y, self.w, self.h)
         
     def debug_draw(self):
         import pyglet
