@@ -34,12 +34,17 @@ available for brains to use in wander.py.
   * [Pyglet](http://pyglet.org/)
     * Windows users should use [pip](http://www.pip-installer.org/) to install.
     * OSX users should use [this fork](http://code.google.com/r/evilphillip-cocoa-ctypes/) 
-      * If you have pip: `pip install https://github.com/downloads/mathom/BrainTank/pyglet-evilphillip-cocoa-ctypes.tar.bz2`
+      * If you have pip: `pip install https://github.com/downloads/pysgf/BrainTank/pyglet-evilphillip-cocoa-ctypes.tar.bz2`
+  * [AVBin](http://code.google.com/p/avbin/) - For playing music & sounds.
+    * Windows users should pull down http://code.google.com/p/avbin/downloads/detail?name=avbin-win32-5.zip.
+    * OSX users should use http://code.google.com/p/avbin/downloads/detail?name=avbin-darwin-x86-64-8.zip.
+      * After downloading the zip, unzip & run sudo install.sh.
 
 ## Licensing
-The code is GPLv3, but the art is not.
+The code is GPLv3, but the art/sound is not.
 
 ### Attribution
   * The Planet Cute sprites are from the venerable Danc. Check out his [site](http://www.lostgarden.com).
   * The tank is by Saypen on [Open Game Art](http://opengameart.org/content/american-tank).
+  * The Main song is by Mister Electric Demon on [Jamendo](http://www.jamendo.com/en/album/7686).
   * Everything else I've made and is in the public domain.
