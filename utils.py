@@ -24,28 +24,28 @@ import sys, time
 
 class Enum(object):
     '''Crappy enum emulator'''
-    
+
     class Item(object):
         def __init__(self, name):
             self.__name = str(name)
-        
+
         def __repr__(self):
             return self.__name
-    
+
     def __init__(self, *args):
         self.values = []
         for name in args:
             item = Enum.Item(name)
             setattr(self, name, item)
             self.values.append(item)
-    
+
 class Rect:
     def __init__(self, x, y, w, h):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
-        
+
     def touches(self, o):
         if o.x + o.w < self.x:
             return False
@@ -55,45 +55,45 @@ class Rect:
             return False
         if o.y > self.y + self.h:
             return False
-            
+
         return True
-        
+
     def __repr__(self):
         return "Rect(%s, %s, %s, %s)" % (self.x, self.y, self.w, self.h)
-        
+
     def debug_draw(self):
         import pyglet
         import pyglet.gl as gl
-        
+
         x,y,w,h = self.x, self.y, self.w, self.h
-        vertex_list = pyglet.graphics.vertex_list(4,    
+        vertex_list = pyglet.graphics.vertex_list(4,
             ('v2f', (x,y, x+w,y, x+w,y+h, x,y+h)),
             ('c3B', (255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0))
         )
         vertex_list.draw(gl.GL_LINE_LOOP)
 
-        
+
 class Animation:
     '''Handle a linear animation of a given value.'''
-    
+
     def __init__(self, start, stop, speed):
         self.start = start
         self.value = start
         self.stop = stop
         self.speed = speed
         self.done = False
-        
+
     def unit(self):
         return self.value / (self.stop - self.start)
-        
+
     def update(self, dt):
         if not self.done:
             self.value += self.speed * dt
             if self.value >= self.stop:
                 self.done = True
-                
+
     def __str__(self):
-        return "Animation at %.2f of %.2f (+%.2f)" % (self.value, self.stop, self.speed)            
+        return "Animation at %.2f of %.2f (+%.2f)" % (self.value, self.stop, self.speed)
 
 
 class DebugWriter:

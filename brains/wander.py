@@ -48,14 +48,14 @@ Functions available to brains:
     kill() - self destruct tank
 
 Facings:
-    UP, DOWN, LEFT, RIGHT, 
-    
+    UP, DOWN, LEFT, RIGHT,
+
 Brain Commands:
     FORWARD, BACKWARD, SHOOT
-    
+
 Tank States:
     IDLE, MOVING, TURNING, SHOOTING, DEAD
-    
+
 Tiles:
     GRASS, DIRT, PLAIN, WATER
     SAFE_TILES = (GRASS, DIRT, PLAIN) - can be driven on safely
@@ -64,20 +64,20 @@ Tiles:
 Items:
     ROCK, TREE - blocking items that can be destroyed
     TANK_BLUE, TANK_RED - tanks located on a tile
-    
+
 Lookup Helper Dictionaries:
     FACING_TO_VEC - takes a facing symbol and returns the (x,y) unit vector
-    
+
 '''
 
 import random
 
 def think():
-    #forget() # clear old commands 
-        
+    #forget() # clear old commands
+
     x, y = position
     dx, dy = direction
-    
+
     tile, item = radar(x + dx, y + dy)
     print "at", x, y, "and facing", facing
     print "will be moving into:", tile, item
@@ -86,7 +86,7 @@ def think():
         # out of all facing possibilities, choose one we don't have currently
         new_facing = [UP, DOWN, LEFT, RIGHT]
         new_facing.remove(facing)
-        
+
         # evaluate the possible facings and remove ones that will block tank
         good_facing = []
         for f in new_facing:
@@ -94,9 +94,9 @@ def think():
             nt, ni = radar(x + v[0], y + v[1])
             if ni is None and nt not in (None, WATER):
                 good_facing.append(f)
-                
+
         return random.choice(good_facing or new_facing)
-    
+
     # avoid moving into blocking items
     if item is not None or tile in (WATER, None):
         forget() # clear possibly bad commands
@@ -104,13 +104,13 @@ def think():
     elif random.randint(0,5) == 0:
         # 1 out of 5 times choose a new direction
         face(new_facing())
-    
+
     if FORWARD not in memory:
         forward()
-    
+
     if random.randint(0,3) == 0:
         # 1 out of 3 times try to shoot
         shoot()
-    
+
     print "brain queue:", memory
 

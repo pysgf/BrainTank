@@ -39,24 +39,24 @@ from world import World
 
 class Game(pyglet.window.Window):
     def __init__(self, thinkers):
-        config = pyglet.gl.Config(buffer_size=32, 
-                                  alpha_size=8, 
+        config = pyglet.gl.Config(buffer_size=32,
+                                  alpha_size=8,
                                   double_buffer=True)
         super(Game, self).__init__(width=1024, height=768,
                                    config=config, resizable=True)
-       
+
         self.world = World(10, 8)
         self.thinkers = thinkers
-        
+
         pyglet.clock.schedule_interval(self.update_closure(), 1.0/60.0)
-        
+
         font = pyglet.font.load("terminal", bold=True)
         color = (0.0, 1.0, 1.0, 1.0)
         fmt = '%(fps).1f'
-        self.fps_display = pyglet.clock.ClockDisplay(font=font, 
-                                                     color=color, 
+        self.fps_display = pyglet.clock.ClockDisplay(font=font,
+                                                     color=color,
                                                      format=fmt)
-        
+
         self.keys = key.KeyStateHandler()
         self.push_handlers(self.keys)
 
@@ -67,16 +67,16 @@ class Game(pyglet.window.Window):
                 if tank.brain and tank.is_idle():
                     thinker_think(tank, thinker)
             self.world.update(dt)
-                
+
         return update
- 
+
     def on_draw(self):
         self.clear()
-        
+
         self.world.draw()
-        
+
         self.fps_display.draw()
-        
+
 
 if __name__ == '__main__':
     Game((THINKER1, THINKER2))
