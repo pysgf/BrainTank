@@ -26,6 +26,7 @@ import pyglet.gl as gl
 import os, random
 from tank import Tank
 from symbols import Facing, Tile, Item
+import config
 
 
 class VoidKill(Exception):
@@ -130,7 +131,8 @@ class World:
             self.main_music = pyglet.resource.media('Sounds/xmasmyth.mp3')
             self.has_sound = True
         except pyglet.media.riff.WAVEFormatException:
-            print "sound is DISABLED, please install avbin"
+            if config.DEBUG:
+                print "sound is DISABLED, please install avbin"
             self.has_sound = False
 
     def play_music(self):
@@ -157,26 +159,10 @@ class World:
 
                 row[i] = (tile, item)
 
-        # clear spawn points
-        s1 = (0, 0, Facing.RIGHT)
-        s2 = (self.width-1, self.height-1, Facing.LEFT)
-        if r.randint(0,1):
-            s1, s2 = s2, s1
-
-        red_tank = Tank(self, s1[0], s1[1], s1[2], 'red')
-        blue_tank = Tank(self, s2[0], s2[1], s2[2], 'blue')
-
-        self.__set_tile(s1, (self.plain, red_tank))
-        self.__set_tile(s2, (self.plain, blue_tank))
-        self.tanks = (red_tank, blue_tank)
-
         self.ITEM_TO_ENUM.update({
             None:      None,
             self.rock: Item.ROCK,
             self.tree: Item.TREE,
-        })
-        self.ITEM_TO_ENUM.update({
-            x: x.color.upper() for x in self.tanks
         })
 
         self.TILE_TO_ENUM.update({
@@ -185,6 +171,24 @@ class World:
             self.dirt:  Tile.DIRT,
             self.plain: Tile.PLAIN,
             self.water: Tile.WATER,
+        })
+
+    def add_tanks(self, tank_colors):
+        s1 = (0, 0, Facing.RIGHT)
+        s2 = (0, self.height-1, Facing.UP)
+        s3 = (self.width-1, self.height-1, Facing.LEFT)
+        s4 = (self.width-1, 0, Facing.DOWN)
+
+        spawns = self.rand.sample((s1,s2,s3,s4), len(tank_colors))
+
+        self.tanks = []
+        for spawn,color in zip(spawns, tank_colors):
+            tank = Tank(self, spawn[0], spawn[1], spawn[2], color)
+            self.__set_tile(spawn, (self.plain, tank))
+            self.tanks.append(tank)
+
+        self.ITEM_TO_ENUM.update({
+            x: x.color.upper() for x in self.tanks
         })
 
     def __set_tile(self, pos, data):
@@ -301,7 +305,8 @@ class World:
     def detonate(self, thing, pos=None):
         '''Detonate (destroy) an object on the map, optionally clearing the item at pos'''
 
-        print "blowing up", thing
+        if config.DEBUG:
+            print "blowing up", thing
 
         if thing in self.tanks:
             print "GAME OVER!"

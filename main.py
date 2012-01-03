@@ -21,24 +21,19 @@
 ###############################################################################
 
 # set sample brains: if you have one put it here
-from tank import Tank
-from brain import thinker_import, thinker_think
-import sys
-from config import THINKERS
-
-sys.path.append('brains')
-THINKER1 = thinker_import(THINKERS[0])
-THINKER2 = thinker_import(THINKERS[1])
+import math, os, os.path, sys, traceback
 
 import pyglet
 from pyglet.window import key
 import pyglet.gl as gl
-import os, traceback
 
+import config
 from world import World
+from tank import Tank
+from brain import thinker_import, thinker_think
 
 class Game(pyglet.window.Window):
-    def __init__(self, thinkers):
+    def __init__(self, thinker_colors, thinkers):
         config = pyglet.gl.Config(buffer_size=32,
                                   alpha_size=8,
                                   double_buffer=True)
@@ -46,7 +41,9 @@ class Game(pyglet.window.Window):
                                    config=config, resizable=True)
 
         self.world = World(10, 8)
+        self.thinker_colors = thinker_colors
         self.thinkers = thinkers
+        self.world.add_tanks(thinker_colors)
 
         pyglet.clock.schedule_interval(self.update_closure(), 1.0/60.0)
 
@@ -79,6 +76,31 @@ class Game(pyglet.window.Window):
 
 
 if __name__ == '__main__':
-    Game((THINKER1, THINKER2))
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Simulate tank battles.')
+    parser.add_argument('thinkers', metavar='brain', type=str, nargs='+',
+                        help='thinker file to power a brain')
+    parser.add_argument('--debug', dest='debug', action='store_true',
+                        help='print simulation debugging')
+
+    args = parser.parse_args()
+    config.DEBUG = args.debug
+    if config.DEBUG:
+        print "debugging is ENABLED!"
+
+    num_tanks = len(args.thinkers)
+    colors = ['blue', 'red', 'yellow']
+    if num_tanks > len(colors):
+        sys.exit("too many tanks! only %d tanks supported" % len(colors))
+    colors = colors[:num_tanks]
+
+    def modname(color, filename):
+        return "%s_%s" % (color, os.path.basename(filename).replace('.py',''))
+
+    thinkers = zip(colors, args.thinkers)
+    thinkers = [thinker_import(modname(col, f), f) for col, f in thinkers]
+
+    Game(colors, thinkers)
     pyglet.clock.set_fps_limit(60)
     pyglet.app.run()

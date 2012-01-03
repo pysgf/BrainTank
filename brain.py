@@ -24,6 +24,8 @@ import sys, traceback
 from copy import deepcopy
 from utils import DebugWriter
 from symbols import Tile, Item, Facing, TankState, Command, FACING_TO_VEC
+from imp import load_source
+import config
 
 class Brain:
     '''The Brain is your primary interface to write a custom tank AI.'''
@@ -97,11 +99,18 @@ class Brain:
         self.tank.kill()
 
 
-def thinker_import(name):
+def thinker_import(name, filename=None):
     '''Import a new thinker or reload it if it exists already'''
-    if name in sys.modules:
+
+    if filename:
+        from imp import load_source
+        if config.DEBUG: print "importing %s from %s" % (name, filename)
+        load_source(name, filename)
+    elif name in sys.modules:
+        if config.DEBUG: print "reloading %s"
         reload(sys.modules[name])
     else:
+        if config.DEBUG: print "importing %s"
         __import__(name)
 
     return sys.modules[name]

@@ -72,11 +72,17 @@ Lookup Helper Dictionaries:
 
 import random
 
+counter = 1
+
 def think():
     #forget() # clear old commands
 
     x, y = position
     dx, dy = direction
+
+    global counter
+    print "counter is", counter
+    counter += 1
 
     tile, item = radar(x + dx, y + dy)
     print "at", x, y, "and facing", facing
