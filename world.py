@@ -319,3 +319,32 @@ class World:
     def add_bullet(self, bullet):
         self.bullets.append(bullet)
 
+    def dump_map(self):
+        '''Dump the current map to a string for viewers to be able to read.
+        Outputs a JSON list, the first element being a dict with enums and integers,
+        the list of integers is a list of tiles and items, in integer form:
+            [{mappings}, [tilesanditems]]
+
+        Example:
+            [{"GRASS": 1}, [1, 1, 1, 1]]
+        '''
+        import json
+        dump = []
+        # FIXME: Append the map dimensions to dump.
+        mappings = {}
+        for y, col in enumerate(self.__map):
+            for x, row in enumerate(col):
+                tile = str(self.TILE_TO_ENUM[row[0]])
+                item = str(self.ITEM_TO_ENUM[row[1]])
+                for obj in (tile, item):
+                    if obj not in mappings:
+                        mappings[obj] = len(mappings)
+                dump.extend((mappings[tile], mappings[item]))
+        return json.dumps([mappings, dump])
+
+
+if __name__ == "__main__":
+    w = World(10, 10)
+    w.generate_map()
+    print w.dump_map()
+
