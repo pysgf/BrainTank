@@ -103,7 +103,6 @@ def thinker_import(name, filename=None):
     '''Import a new thinker or reload it if it exists already'''
 
     if filename:
-        from imp import load_source
         if config.DEBUG: print "importing %s from %s" % (name, filename)
         load_source(name, filename)
     elif name in sys.modules:
@@ -121,66 +120,70 @@ def thinker_think(tank, thinker):
     brain = tank.brain
     world = tank.world
 
+    game = {}
+
     # vars
-    thinker.color = tank.color
-    thinker.position = brain.position()
-    thinker.facing = brain.facing()
-    thinker.direction = brain.direction()
-    thinker.shots_fired = tank.shots
+    game["color"] = tank.color
+    game["position"] = brain.position()
+    game["facing"] = brain.facing()
+    game["direction"] = brain.direction()
+    game["shots_fired"] = tank.shots
 
     other_tanks = [x for x in world.tanks if x is not tank]
-    thinker.tanks = [world.ITEM_TO_ENUM[x] for x in other_tanks]
-    thinker.tank_positions = [x.get_position() for x in other_tanks]
-    thinker.tank_states = [x.state for x in other_tanks]
+    game["tanks"] = [world.ITEM_TO_ENUM[x] for x in other_tanks]
+    game["tank_positions"] = [x.get_position() for x in other_tanks]
+    game["tank_states"] = [x.state for x in other_tanks]
 
-    thinker.memory = deepcopy(brain.memory)
+    game["memory"] = deepcopy(brain.memory)
 
     # symbols
-    thinker.UP = Facing.UP
-    thinker.DOWN = Facing.DOWN
-    thinker.LEFT = Facing.LEFT
-    thinker.RIGHT = Facing.RIGHT
-    thinker.SHOOT = Command.SHOOT
-    thinker.FORWARD = Command.FORWARD
-    thinker.BACKWARD = Command.BACKWARD
+    game["UP"] = Facing.UP
+    game["DOWN"] = Facing.DOWN
+    game["LEFT"] = Facing.LEFT
+    game["RIGHT"] = Facing.RIGHT
+    game["SHOOT"] = Command.SHOOT
+    game["FORWARD"] = Command.FORWARD
+    game["BACKWARD"] = Command.BACKWARD
 
-    thinker.IDLE = TankState.IDLE
-    thinker.MOVING = TankState.MOVING
-    thinker.SHOOTING = TankState.SHOOTING
-    thinker.TURNING = TankState.TURNING
-    thinker.DEAD = TankState.DEAD
+    game["IDLE"] = TankState.IDLE
+    game["MOVING"] = TankState.MOVING
+    game["SHOOTING"] = TankState.SHOOTING
+    game["TURNING"] = TankState.TURNING
+    game["DEAD"] = TankState.DEAD
 
-    thinker.GRASS = Tile.GRASS
-    thinker.DIRT = Tile.DIRT
-    thinker.PLAIN = Tile.PLAIN
-    thinker.WATER = Tile.WATER
+    game["GRASS"] = Tile.GRASS
+    game["DIRT"] = Tile.DIRT
+    game["PLAIN"] = Tile.PLAIN
+    game["WATER"] = Tile.WATER
 
-    thinker.SAFE_TILES = [world.TILE_TO_ENUM[x] for x in world.safe]
-    thinker.UNSAFE_TILES = [world.TILE_TO_ENUM[x] for x in world.unsafe]
+    game["SAFE_TILES"] = [world.TILE_TO_ENUM[x] for x in world.safe]
+    game["UNSAFE_TILES"] = [world.TILE_TO_ENUM[x] for x in world.unsafe]
 
-    thinker.ROCK = Item.ROCK
-    thinker.TREE = Item.TREE
+    game["ROCK"] = Item.ROCK
+    game["TREE"] = Item.TREE
 
     # lookup tables
-    thinker.FACING_TO_VEC = {
+    game["FACING_TO_VEC"] = {
         x: FACING_TO_VEC[x] for x in Facing.values
     }
 
     # functions
-    thinker.forget = brain.forget
-    thinker.face = brain.face
-    thinker.forward = brain.forward
-    thinker.backward = brain.backward
-    thinker.shoot = brain.shoot
-    thinker.radar = brain.radar
-    thinker.kill = brain.kill
+    game["forget"] = brain.forget
+    game["face"] = brain.face
+    game["forward"] = brain.forward
+    game["backward"] = brain.backward
+    game["shoot"] = brain.shoot
+    game["radar"] = brain.radar
+    game["kill"] = brain.kill
 
     sys.stdout = DebugWriter(tank.color)
 
+    GameState = type('GameState', (), game)
+
     # start a think cycle
     try:
-        thinker.think()
-    except Exception as e:
+        thinker.think(GameState())
+    except Exception:
         print 'Fatal brain error:'
         sys.stdout = sys.__stdout__
         traceback.print_exc()

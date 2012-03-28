@@ -74,49 +74,49 @@ import random
 
 counter = 1
 
-def think():
+def think(game):
     #forget() # clear old commands
 
-    x, y = position
-    dx, dy = direction
+    x, y = game.position
+    dx, dy = game.direction
 
     global counter
     print "counter is", counter
     counter += 1
 
-    tile, item = radar(x + dx, y + dy)
-    print "at", x, y, "and facing", facing
+    tile, item = game.radar(x + dx, y + dy)
+    print "at", x, y, "and facing", game.facing
     print "will be moving into:", tile, item
 
     def new_facing():
         # out of all facing possibilities, choose one we don't have currently
-        new_facing = [UP, DOWN, LEFT, RIGHT]
-        new_facing.remove(facing)
+        new_facing = [game.UP, game.DOWN, game.LEFT, game.RIGHT]
+        new_facing.remove(game.facing)
 
         # evaluate the possible facings and remove ones that will block tank
         good_facing = []
         for f in new_facing:
-            v = FACING_TO_VEC[f]
-            nt, ni = radar(x + v[0], y + v[1])
-            if ni is None and nt not in (None, WATER):
+            v = game.FACING_TO_VEC[f]
+            nt, ni = game.radar(x + v[0], y + v[1])
+            if ni is None and nt not in (None, game.WATER):
                 good_facing.append(f)
 
         return random.choice(good_facing or new_facing)
 
     # avoid moving into blocking items
-    if item is not None or tile in (WATER, None):
-        forget() # clear possibly bad commands
-        face(new_facing())
+    if item is not None or tile in (game.WATER, None):
+        game.forget() # clear possibly bad commands
+        game.face(new_facing())
     elif random.randint(0,5) == 0:
         # 1 out of 5 times choose a new direction
-        face(new_facing())
+        game.face(new_facing())
 
-    if FORWARD not in memory:
-        forward()
+    if game.FORWARD not in game.memory:
+        game.forward()
 
     if random.randint(0,3) == 0:
         # 1 out of 3 times try to shoot
-        shoot()
+        game.shoot()
 
-    print "brain queue:", memory
+    print "brain queue:", game.memory
 
