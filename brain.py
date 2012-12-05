@@ -57,7 +57,7 @@ class Brain:
         if facing in Facing.values:
             self.memory.append(facing)
         else:
-            raise Exception('brain malfunction')
+            raise Exception('brain malfunction', facing)
 
     def forward(self):
         '''Queue the command to move the tank forward.
