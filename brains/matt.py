@@ -151,8 +151,8 @@ def think(game):
         facing = VEC_TO_FACING[(first[0]-x, first[1]-y)]
 
         game.face(facing)
-        game.forward()
         game.shoot()
+        game.forward()
 
     print "brain queue:", game.memory
 
