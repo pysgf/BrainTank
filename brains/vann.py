@@ -23,7 +23,7 @@
 '''
 James Vann's Brain.
 
-This is my first publicly avaible code, and I would apprecaite any comments on my methods/style. 
+This is my first publicly avaible code, and I would appreciate any comments on my methods/style. 
 
 Ideas for Improvement:
 
@@ -105,47 +105,51 @@ class Intelligence(object):
 
     def get_action(self,game):
         ''' This is where the real logic goes- what does the tank do?'''
-        print("Vann's commands are {0}".format(game.memory))
-        if game.tank_positions[0][0] == game.position[0]:
-            if game.tank_positions[0][1] > game.position[1]:
-                self.face(game,game.DOWN)
-                self.shoot(game)
-                print("Vann's commands are {0}".format(game.memory))
-            else:
-                self.face(game,game.UP)
-                self.shoot(game)
-                print("Vann's commands are {0}".format(game.memory))
-
-        elif game.tank_positions[0][1] == game.position[1]:
-            if game.tank_positions[0][0] > game.position[0]:
-                self.face(game,game.RIGHT)
-                self.shoot(game)
-                print("Vann's commands are {0}".format(game.memory))
-            else:
-                self.face(game,game.LEFT)
-                self.shoot(game)
-                print("Vann's commands are {0}".format(game.memory))
-        
-        else:
-            if game.tank_positions[0][1] > game.position[1]:
-                if self.tile_safe(game,game.DOWN):
+        if game.tank_states[0] == game.DEAD:
+            print('Vann Won, the other tank is deader than a doornail!')
+	else:
+            print(game.tank_states)
+            game.forget() #used to clear possibly old commands before issuing new ones
+            if game.tank_positions[0][0] == game.position[0]:
+                if game.tank_positions[0][1] > game.position[1]:
                     self.face(game,game.DOWN)
-                    print('Vann moving DOWN')
-                    self.forward(game)
+                    self.shoot(game)
                     print("Vann's commands are {0}".format(game.memory))
                 else:
-                    self.move_x(game)
-            
-            elif game.tank_positions[0][1] < game.position[1]:
-                if self.tile_safe(game,game.UP):
                     self.face(game,game.UP)
-                    print('Vann moving UP')
-                    self.forward(game)
+                    self.shoot(game)
+                    print("Vann's commands are {0}".format(game.memory))
+
+            elif game.tank_positions[0][1] == game.position[1]:
+                if game.tank_positions[0][0] > game.position[0]:
+                    self.face(game,game.RIGHT)
+                    self.shoot(game)
                     print("Vann's commands are {0}".format(game.memory))
                 else:
-                    self.move_x(game)
+                    self.face(game,game.LEFT)
+                    self.shoot(game)
+                    print("Vann's commands are {0}".format(game.memory))
+            
+            else:
+                if game.tank_positions[0][1] > game.position[1]:
+                    if self.tile_safe(game,game.DOWN):
+                        self.face(game,game.DOWN)
+                        print('Vann moving DOWN')
+                        self.forward(game)
+                        print("Vann's commands are {0}".format(game.memory))
+                    else:
+                        self.move_x(game)
+                
+                elif game.tank_positions[0][1] < game.position[1]:
+                    if self.tile_safe(game,game.UP):
+                        self.face(game,game.UP)
+                        print('Vann moving UP')
+                        self.forward(game)
+                        print("Vann's commands are {0}".format(game.memory))
+                    else:
+                        self.move_x(game)
         
-                    
+                        
     
 # create an instance of intelligence
 
