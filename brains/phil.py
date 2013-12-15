@@ -26,33 +26,30 @@ Phil's Brain
 See the wander.py file for brain docs (too hard to keep two up to date)
 '''
 
-import random
 
-
-def turn_around():
+def turn_around(game):
     '''Turn 180 degress around. New by Phil.'''
-    if facing is UP:
-        face(DOWN)
-    elif facing is DOWN:
-        face(UP)
-    elif facing is LEFT:
-        face(RIGHT)
-    elif facing is RIGHT:
-        face(LEFT)
+    if game.facing is game.UP:
+        game.face(game.DOWN)
+    elif game.facing is game.DOWN:
+        game.face(game.UP)
+    elif game.facing is game.LEFT:
+        game.face(game.RIGHT)
+    elif game.facing is game.RIGHT:
+        game.face(game.LEFT)
 
 
-def think():
+def think(game):
 
-    x, y = position
-    dx, dy = direction
+    x, y = game.position
+    dx, dy = game.direction
 
-    tile, item = radar(x + dx, y +dy)
+    tile, item = game.radar(x + dx, y + dy)
 
-    print "Tank: ", color, " Tile: ",tile, " Item: ", item
+    print "Tank: ", game.color, " Tile: ", tile, " Item: ", item
 
-    if tile is None or tile is WATER or item is not None:
-        print memory
-        turn_around()
+    if tile is None or tile is game.WATER or item is not None:
+        print game.memory
+        turn_around(game)
     else:
-        forward()
-
+        game.forward()
