@@ -35,10 +35,19 @@ available for brains to use in wander.py.
     * Windows users should use [pip](http://www.pip-installer.org/) to install.
     * OSX users should use [this fork](http://code.google.com/r/evilphillip-cocoa-ctypes/) 
       * If you have pip: `pip install https://github.com/downloads/pysgf/BrainTank/pyglet-evilphillip-cocoa-ctypes.tar.bz2`
+    * Ubuntu
+      * If you have pip: `pip install pyglet`
   * [AVBin](http://code.google.com/p/avbin/) - For playing music & sounds.
     * Windows users should pull down http://code.google.com/p/avbin/downloads/detail?name=avbin-win32-5.zip.
     * OSX users should use http://code.google.com/p/avbin/downloads/detail?name=avbin-darwin-x86-64-8.zip.
       * After downloading the zip, unzip & run sudo install.sh.
+    * Ubuntu
+      * `$ sudo apt-get install libavbin-dev`
+
+## Running
+```bash
+$ python main.py brains/amanda.py brains/phil.py
+```
 
 ## Licensing
 The code is GPLv3, but the art/sound is not.
